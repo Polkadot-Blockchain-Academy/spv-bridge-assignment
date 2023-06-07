@@ -28,6 +28,7 @@ struct MerkleProof {
 interface Bridge {
 
     //TODO some kind of constructor where we supply a cannonical starting hash
+    // could also take a constant PoW difficulty on the source chain
 
     /// @dev Get the latest known source chain block header.
     /// @return A block header

@@ -12,6 +12,9 @@ contract JoshyBridge is Bridge {
     /// The tip of the current best known source chain
     uint256 best_hash;
 
+    /// The difficulty threshold for the PoW
+    uint256 difficulty_threshold = 5000;
+
 
     function best_header() public view returns (Header memory) {
         return headers[best_hash];
@@ -31,8 +34,27 @@ contract JoshyBridge is Bridge {
         return headers[cur_hash];
     }
 
-    function submit_new_header(Header calldata h) external {
+    /// A helper function to detect whether a header exists in the storage
+    function header_is_known(uint256 hash) public view returns (bool) {
+        //TODO
+    }
 
+    function submit_new_header(Header calldata h) external {
+        // Check if the parent is in the database and if not revert.
+        require(header_is_known(h.parent));
+        Header memory parent_header = headers[h.parent];
+
+        // Verify the height increases by 1
+        require(parent_header.height + 1 == h.height);
+
+        // Verify the PoW
+        uint256 header_hash = uint(keccak256(abi.encode(h)));
+        require(header_hash < difficulty_threshold);
+        
+        // Add the new header to the database
+        headers[header_hash] = h;
+
+        //TODO Emit event
     }
 
     function verify_state_inclusion(uint256 hash, uint256 depth, MerkleProof calldata p) external view returns (bool){
