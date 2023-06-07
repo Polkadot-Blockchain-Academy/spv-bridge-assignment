@@ -16,10 +16,10 @@ This basically means either ink! or ask (although, again, more exotic ones are a
 
 ## The Bridge Spec
 
-Major TODO here.
-Basically we want staked users to be able to submit new headers.
+Major TODO here - My sketch so far is in [BridgeInterface.sol](./BridgeInterface.sol).
+Basically we want staked users to be able to submit new headers. Actually, do they need to be staked if the source chain is PoW?
 The contract should have a challenge period during which challenges can result in slashed stake, details tbd.
-The contract should track forks near the tip.
+The contract should track forks near the tip - maybe an incentive to manually prune old forks.
 Contract should store all header hashes back to some starting point.
 Does it need to track all headers?
 
