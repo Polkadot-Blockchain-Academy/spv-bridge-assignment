@@ -221,13 +221,11 @@ contract SpvBridge {
         require(msg.value >= verify_fee, "insufficient verification fee");
 
         Header storage header = headers[header_hash];
-        if (!header_is_canon(header_hash)) {
-            return false;
-        }
-        if (best_height - header.height < min_depth) {
-            return false;
-        }
-        if (!check_merkle_proof(tx_hash, p, header.transactions_root)) {
+        if (
+            !header_is_canon(header_hash) ||
+            best_height - header.height < min_depth ||
+            !check_merkle_proof(tx_hash, p, header.transactions_root)
+        ) {
             return false;
         }
 
@@ -247,13 +245,11 @@ contract SpvBridge {
         uint256 claim_hash = uint(keccak256(abi.encode(claim)));
 
         Header storage header = headers[header_hash];
-        if (!header_is_canon(header_hash)) {
-            return false;
-        }
-        if (best_height - header.height < min_depth) {
-            return false;
-        }
-        if (!check_merkle_proof(claim_hash, p, header.transactions_root)) {
+        if (
+            !header_is_canon(header_hash) ||
+            best_height - header.height < min_depth ||
+            !check_merkle_proof(claim_hash, p, header.transactions_root)
+        ) {
             return false;
         }
 
