@@ -9,7 +9,7 @@ contract SpvBridgeTest is Test {
 
     function setUp() public {
 
-        Header memory g = new Header {
+        Header memory g = Header({
             height: 100,
             parent: 0,
             storage_root: 0,
@@ -17,7 +17,7 @@ contract SpvBridgeTest is Test {
             // FIXME: Should the constructor validate
             // the PoW on the checkpoint block?
             pow_nonce: 0
-        };
+        });
 
         bridge = new SpvBridge(g, 10_000_000_000);
     }
