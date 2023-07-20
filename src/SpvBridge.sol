@@ -208,6 +208,7 @@ contract SpvBridge {
         require(msg.value >= verify_fee, "insufficient verification fee");
 
         Header storage header = headers[header_hash];
+        //FIXME, why are these test failing?
         // if (header_is_known(header_hash)) {
         //     return false;
         // }
@@ -227,7 +228,7 @@ contract SpvBridge {
         return true;
     }
 
-    function verify_state(StateClaim memory claim, uint256 block_hash, uint256 min_depth, MerkleProof calldata p) external returns (bool) {
+    function verify_state(StateClaim memory claim, uint256 block_hash, uint256 min_depth, MerkleProof calldata p) external payable returns (bool) {
         // TODO
     }
 }

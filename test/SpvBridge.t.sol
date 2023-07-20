@@ -187,18 +187,27 @@ contract SpvBridgeTest is Test {
         assert(!bridge.verify_transaction{value: verify_fee}(0, genesis_hash, 0, MerkleProof({verifies: false})));
     }
 
-    //TODO There are many more ways that a transaction or stateverification can fail,
+    //TODO There are many more ways that a transaction or state verification can fail,
     // that we have not yet tested for.
     // You may be wiise to add some tests o your own to ensure your code is working as expected.
+
+    function testStateVerificationSuccess() public {
+        // We start by creating a linear source chain that looks like this
+        // G---A
+        Header memory a = make_child(genesis);
+
+        vm.prank(player);
+        bridge.submit_new_header{value: relay_fee}(a);
+
+        // Now we try to validate a state claim using the stubbed logic
+        StateClaim memory claim = StateClaim({
+            key: 123,
+            value: 456
+        });
+
+        assert(bridge.verify_state{value: verify_fee}(claim, genesis_hash, 0, MerkleProof({verifies: true})));
+    }
+
+    // TODO fail case
+    
 }
-
-// Test braindump
-
-// constructor happy path
-// submit to extend longest chain
-// submit to add side chain
-// submit to cause re-org
-// Tx verification happy path
-// Tx verification fail path
-// State verification happy path
-// State verification one fail path
