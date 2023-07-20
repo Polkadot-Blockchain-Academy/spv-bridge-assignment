@@ -27,9 +27,12 @@ struct MerkleProof {
 }
 
 /// (Stubbed) Verify whether a Merkle proof is valid against the given root.
-function check_merkle_proof(uint256 claim_hash, MerkleProof proof, uint256 merkle_root) pure returns (bool) {
+function check_merkle_proof(uint256 claim_hash, MerkleProof memory proof, uint256 merkle_root) pure returns (bool) {
     // This is where the actual merkle proof checking logic _would_ go
-    // if we weren't stubbing the proofs. Instead this one-line stub is given.
+    // if we weren't stubbing the proofs. Instead this stub is given.
+    // We mention the variable to silence the unused variable warning.
+    claim_hash;
+    merkle_root;
     return proof.verifies;
 }
 
@@ -79,12 +82,12 @@ contract SpvBridge {
     /// thereafter.
     ///
     /// This constructor allows the contract deployer to specifiy the recent block from which to start
-    constructor(Header source_genesis_header, uint256 difficulty) {
+    constructor(Header memory source_genesis_header, uint256 difficulty) {
         // Store the initial difficulty threshold
         difficulty_threshold = difficulty;
 
         // Calculate header hash and put header in storage
-        uint256 h = keccak256(abi.encode(source_genesis_header));
+        uint256 h = uint(keccak256(abi.encode(source_genesis_header)));
         headers[h] = source_genesis_header;
 
         // Update other storages
@@ -92,7 +95,7 @@ contract SpvBridge {
         cannon_chain[best_height] = h;
 
         // Record the deployer as the fee recipient for the checkpoint block
-        fee_recipient[h] = msg.sender();
+        fee_recipient[h] = msg.sender;
     }
 
     /// Someone has successfully submitted a source chain header.
@@ -112,7 +115,7 @@ contract SpvBridge {
         uint256 header_hash = uint(keccak256(abi.encode(header)));
 
         // Check if the block itself is already known.
-        require(!header_is_known(header), "header already submitted");
+        require(!header_is_known(header_hash), "header already submitted");
 
         // Check if the parent is in the database and if not revert.
         require(header_is_known(header.parent), "unknown parent");
@@ -127,26 +130,33 @@ contract SpvBridge {
         // Add the new header to the database
         // and the fee recipient to the database
         headers[header_hash] = header;
-        fee_recipient[header_hash] = msg.sender();
+        fee_recipient[header_hash] = msg.sender;
 
         // It is possible that this new header caused a source chain re-org
         // which we need to handle here. Rather than determine whether a re-org
         // happened at all, we will just check whether this gives us a new longest chain
         if (header.height > best_height) {
             best_height = header.height;
-            cannon_chain[header.height] = header;
+            cannon_chain[header.height] = header_hash;
 
             // Any time we have a new longest chain, we run the re-org algo.
             // In the case where it is actually just extending the already-longest chain
             // we will take zero iterations through this loop.
-            uint256 ancestor = header.parent;
-            while (!header_is_canon(ancestor)) {
-                cannon_chain[ancestor.height] = ancestor;
+            uint256 ancestor_hash = header.parent;
+            while (!header_is_canon(ancestor_hash)) {
+                // Look up the actual ancestor header
+                Header storage ancestor = headers[ancestor_hash];
+
+                // Make it canon
+                cannon_chain[ancestor.height] = ancestor_hash;
+
+                // Get ready for the next iteration
+                ancestor_hash = ancestor.parent;
             }
         }
 
         // Emit event
-        emit HeaderSubmitted(header_hash, header.height, msg.sender());
+        emit HeaderSubmitted(header_hash, header.height, msg.sender);
     }
 
     /// A helper function to detect whether a header exists in the storage
@@ -172,18 +182,7 @@ contract SpvBridge {
         // TODO
     }
 
-    function verify_state(StateClaim claim, uint256 block_hash, uint256 min_depth, MerkleProof calldata p) external returns (bool) {
+    function verify_state(StateClaim memory claim, uint256 block_hash, uint256 min_depth, MerkleProof calldata p) external returns (bool) {
         // TODO
     }
 }
-
-// Test braindump
-
-// constructor happy path
-// submit to extend longest chain
-// submit to add side chain
-// submit to cause re-org
-// Tx verification happy path
-// Tx verification fail path
-// State verification happy path
-// State verification one fail path
