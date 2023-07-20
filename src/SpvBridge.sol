@@ -122,9 +122,7 @@ contract SpvBridge {
     /// Once the block is validated you must determine whether this causes
     /// a re-org or not, and update storage accordingly.
     function submit_new_header(Header calldata header) external payable {
-        // FIXME this is disabled because the first few tests didn't expect it
-        // I just need to enable it and fix the tests.
-        // require(msg.value > relay_fee, "insufficient relay fee");
+        require(msg.value >= relay_fee, "insufficient relay fee");
         
         uint256 header_hash = uint(keccak256(abi.encode(header)));
 

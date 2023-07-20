@@ -73,7 +73,7 @@ contract SpvBridgeTest is Test {
 
         // Submit the new header
         vm.prank(player);
-        bridge.submit_new_header(child);
+        bridge.submit_new_header{value: relay_fee}(child);
         
         // Validate the storage
         assertEq(bridge.cannon_chain(100), genesis_hash);
@@ -96,9 +96,9 @@ contract SpvBridgeTest is Test {
 
         // Submit the chain to the bridge
         vm.prank(player);
-        bridge.submit_new_header(a);
+        bridge.submit_new_header{value: relay_fee}(a);
         vm.prank(player);
-        bridge.submit_new_header(b);
+        bridge.submit_new_header{value: relay_fee}(b);
 
         // Now we create a fork in the source chain.
         // The fork is not long enough to cause a re-org.
@@ -110,7 +110,7 @@ contract SpvBridgeTest is Test {
         Header memory c = make_child(genesis, 1);
         uint256 c_hash = uint(keccak256(abi.encode(c)));
         vm.prank(player);
-        bridge.submit_new_header(c);
+        bridge.submit_new_header{value: relay_fee}(c);
         
         // Validate the storage
         assertEq(bridge.cannon_chain(100), genesis_hash);
@@ -134,7 +134,7 @@ contract SpvBridgeTest is Test {
 
         // Submit the chain to the bridge
         vm.prank(player);
-        bridge.submit_new_header(a);
+        bridge.submit_new_header{value: relay_fee}(a);
 
         // Now we create a fork in the source chain.
         // The fork is long enough to cause a re-org.
@@ -148,9 +148,9 @@ contract SpvBridgeTest is Test {
         uint256 d_hash = uint(keccak256(abi.encode(d)));
 
         vm.prank(player);
-        bridge.submit_new_header(c);
+        bridge.submit_new_header{value: relay_fee}(c);
         vm.prank(player);
-        bridge.submit_new_header(d);
+        bridge.submit_new_header{value: relay_fee}(d);
         
         // Validate the storage
         assertEq(bridge.cannon_chain(100), genesis_hash);
