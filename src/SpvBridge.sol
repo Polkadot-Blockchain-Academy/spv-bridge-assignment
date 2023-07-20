@@ -97,7 +97,7 @@ contract SpvBridge {
         verify_fee = init_verify_fee;
 
         // Calculate header hash and put header in storage
-        uint256 h = uint(keccak256(abi.encode(source_genesis_header)));
+        uint256 h =hash_header(source_genesis_header);
         headers[h] = source_genesis_header;
 
         // Update other storages
@@ -110,6 +110,14 @@ contract SpvBridge {
 
     /// Someone has successfully submitted a source chain header.
     event HeaderSubmitted(uint256 block_hash, uint256 block_height, address submitter);
+
+    /// Helper function to hash a block header.
+    /// It would be pretty reasonable to just put this inline.
+    /// But we provide it to help avoid bit-level errors from hashing diferently.
+    function hash_header(Header memory header) public pure returns (uint256) {
+        return uint(keccak256(abi.encode(header)));
+    }
+
 
     /// Submit a new source chain block header to the bridge for verification.
     /// In order for the new header to be valid, these conditions must be met:
@@ -124,7 +132,7 @@ contract SpvBridge {
     function submit_new_header(Header calldata header) external payable {
         require(msg.value >= relay_fee, "insufficient relay fee");
         
-        uint256 header_hash = uint(keccak256(abi.encode(header)));
+        uint256 header_hash = hash_header(header);
 
         // Check if the block itself is already known.
         require(!header_is_known(header_hash), "header already submitted");
