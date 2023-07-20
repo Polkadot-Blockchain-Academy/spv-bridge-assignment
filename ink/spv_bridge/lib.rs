@@ -34,6 +34,14 @@ mod spv_bridge {
         verifies: bool,
     }
 
+    impl MerkleProof {
+        pub fn check_merkle_proof(_claim: Hash, proof: MerkleProof, _merkle_root: Hash) {
+            // This is where the actual merkle proof checking logic _would_ go
+            // if we weren't stubbing the proofs. Instead this stub is given.
+            proof.verifies
+        }
+    }
+
     /// A claim that something exists in storage on the source chain.
     /// Such claims can be verified against the source chain through the verify_state function.
     ///
