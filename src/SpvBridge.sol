@@ -244,11 +244,28 @@ contract SpvBridge {
     ///
     /// The checks pereormed are the same as when verifying a transaction.
     /// However, in this chase, you pass the hash of the state claim
-    function verify_state(StateClaim memory claim, uint256 block_hash, uint256 min_depth, MerkleProof calldata p) external payable returns (bool) {
-        // FIXME, this is a hack to make the tests pass
-        claim;
-        block_hash;
-        min_depth;
-        return p.verifies;
+    function verify_state(StateClaim memory claim, uint256 header_hash, uint256 min_depth, MerkleProof calldata p) external payable returns (bool) {
+        require(msg.value >= verify_fee, "insufficient verification fee");
+
+        uint256 claim_hash = uint(keccak256(abi.encode(claim)));
+
+        Header storage header = headers[header_hash];
+        if (!header_is_known(header_hash)) {
+            return false;
+        }
+        if (!header_is_canon(header_hash)) {
+            return false;
+        }
+        if (best_height - header.height < min_depth) {
+            return false;
+        }
+        if (!check_merkle_proof(claim_hash, p, header.transactions_root)) {
+            return false;
+        }
+
+        // Transfer the payment to the relayer.
+        payable(fee_recipient[header_hash]).transfer(verify_fee);
+
+        return true;
     }
 }
