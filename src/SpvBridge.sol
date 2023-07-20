@@ -27,6 +27,13 @@ struct MerkleProof {
 }
 
 /// (Stubbed) Verify whether a Merkle proof is valid against the given root.
+///
+/// You pass in the piece of data that you are claiming is present in the tree,
+/// the known good Merkle root, and the Merkle proof.
+///
+/// This function works for both transaction and state proofs.
+/// For transactions, just pass the tx hash directly
+/// For state claims, pass the keccak hash of the encoded claim
 function check_merkle_proof(uint256 claim_hash, MerkleProof memory proof, uint256 merkle_root) pure returns (bool) {
     // This is where the actual merkle proof checking logic _would_ go
     // if we weren't stubbing the proofs. Instead this stub is given.
@@ -233,6 +240,10 @@ contract SpvBridge {
         return true;
     }
 
+    /// Verify that some state exists on the source chain.
+    ///
+    /// The checks pereormed are the same as when verifying a transaction.
+    /// However, in this chase, you pass the hash of the state claim
     function verify_state(StateClaim memory claim, uint256 block_hash, uint256 min_depth, MerkleProof calldata p) external payable returns (bool) {
         // FIXME, this is a hack to make the tests pass
         claim;
