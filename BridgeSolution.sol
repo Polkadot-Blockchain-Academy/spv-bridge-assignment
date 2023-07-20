@@ -96,11 +96,7 @@ contract SpvBridge {
     }
 
     /// Someone has successfully submitted a source chain header.
-    event HeaderSubmitted(uint256 block_hash, uint256 block_height, address submitter)
-
-    function best_header() public view returns (Header memory) {
-        return headers[best_hash];
-    }
+    event HeaderSubmitted(uint256 block_hash, uint256 block_height, address submitter);
 
     /// Submit a new source chain block header to the bridge for verification.
     /// In order for the new header to be valid, these conditions must be met:
