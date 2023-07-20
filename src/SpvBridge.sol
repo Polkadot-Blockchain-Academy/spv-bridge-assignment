@@ -27,7 +27,11 @@ struct MerkleProof {
 }
 
 /// (Stubbed) Verify whether a Merkle proof is valid against the given root.
-function check_merkle_proof(uint256 claim_hash, MerkleProof memory proof, uint256 merkle_root) pure returns (bool) {
+function check_merkle_proof(
+    uint256 claim_hash,
+    MerkleProof memory proof,
+    uint256 merkle_root
+) pure returns (bool) {
     // This is where the actual merkle proof checking logic _would_ go
     // if we weren't stubbing the proofs. Instead this stub is given.
     // We mention the variable to silence the unused variable warning.
@@ -55,15 +59,14 @@ struct StateClaim {
 /// from a foreign PoW blockchain for validation. It then allows (potentially different)
 /// users to verify claims about what transactions and state exist on the source chain.
 contract SpvBridge {
-
     /// The main source chain header database.
     /// Maps header hashes to complete headers.
     mapping(uint256 => Header) public headers;
 
     /// A representation of the canonical source chain.
-    /// Maps block heights to the canonical source block hash at that high.
-    /// Updates when are-org happens
-    mapping(uint256 => uint256) public cannon_chain;
+    /// Maps block heights to the canonical source block hash at that height.
+    /// Updates when a re-org happens
+    mapping(uint256 => uint256) public canon_chain;
 
     /// The user who submitted each block hash.
     /// Fees paid by verifiers will go to this address.
@@ -90,26 +93,35 @@ contract SpvBridge {
     /// thereafter.
     ///
     /// This constructor allows the contract deployer to specifiy the recent block from which to start
-    constructor(Header memory source_genesis_header, uint256 difficulty, uint256 init_relay_fee, uint256 init_verify_fee) {
+    constructor(
+        Header memory source_genesis_header,
+        uint256 difficulty,
+        uint256 init_relay_fee,
+        uint256 init_verify_fee
+    ) {
         // Store the simple global params
         difficulty_threshold = difficulty;
         relay_fee = init_relay_fee;
         verify_fee = init_verify_fee;
 
         // Calculate header hash and put header in storage
-        uint256 h =hash_header(source_genesis_header);
+        uint256 h = hash_header(source_genesis_header);
         headers[h] = source_genesis_header;
 
         // Update other storages
         best_height = source_genesis_header.height;
-        cannon_chain[best_height] = h;
+        canon_chain[best_height] = h;
 
         // Record the deployer as the fee recipient for the checkpoint block
         fee_recipient[h] = msg.sender;
     }
 
     /// Someone has successfully submitted a source chain header.
-    event HeaderSubmitted(uint256 block_hash, uint256 block_height, address submitter);
+    event HeaderSubmitted(
+        uint256 block_hash,
+        uint256 block_height,
+        address submitter
+    );
 
     /// Helper function to hash a block header.
     /// It would be pretty reasonable to just put this inline.
@@ -117,7 +129,6 @@ contract SpvBridge {
     function hash_header(Header memory header) public pure returns (uint256) {
         return uint(keccak256(abi.encode(header)));
     }
-
 
     /// Submit a new source chain block header to the bridge for verification.
     /// In order for the new header to be valid, these conditions must be met:
@@ -131,7 +142,8 @@ contract SpvBridge {
     /// a re-org or not, and update storage accordingly.
     function submit_new_header(Header calldata header) external payable {
         require(msg.value >= relay_fee, "insufficient relay fee");
-        
+        // This relay fee doesn't go anywhere??
+
         uint256 header_hash = hash_header(header);
 
         // Check if the block itself is already known.
@@ -146,7 +158,7 @@ contract SpvBridge {
 
         // Verify the PoW
         require(header_hash < difficulty_threshold, "PoW threshold not met");
-        
+
         // Add the new header to the database
         // and the fee recipient to the database
         headers[header_hash] = header;
@@ -157,7 +169,7 @@ contract SpvBridge {
         // happened at all, we will just check whether this gives us a new longest chain
         if (header.height > best_height) {
             best_height = header.height;
-            cannon_chain[header.height] = header_hash;
+            canon_chain[header.height] = header_hash;
 
             // Any time we have a new longest chain, we run the re-org algo.
             // In the case where it is actually just extending the already-longest chain
@@ -168,7 +180,7 @@ contract SpvBridge {
                 Header storage ancestor = headers[ancestor_hash];
 
                 // Make it canon
-                cannon_chain[ancestor.height] = ancestor_hash;
+                canon_chain[ancestor.height] = ancestor_hash;
 
                 // Get ready for the next iteration
                 ancestor_hash = ancestor.parent;
@@ -184,11 +196,11 @@ contract SpvBridge {
         Header storage header = headers[header_hash];
 
         // Verify that it is not the all zero header
-        return 
+        return
             header.height != 0 ||
             header.parent != 0 ||
             header.storage_root != 0 ||
-            header.transactions_root !=0 ||
+            header.transactions_root != 0 ||
             header.pow_nonce != 0;
     }
 
@@ -196,8 +208,10 @@ contract SpvBridge {
     function header_is_canon(uint256 header_hash) public view returns (bool) {
         Header storage header = headers[header_hash];
 
-        // Use the header's height to check whether it exists in the cannon chain storage
-        return header_is_known(header_hash) && cannon_chain[header.height] == header_hash;
+        // Use the header's height to check whether it exists in the canon chain storage
+        return
+            header_is_known(header_hash) &&
+            canon_chain[header.height] == header_hash;
     }
 
     /// Verify that some transaction has occurred on the source chain.
@@ -210,7 +224,12 @@ contract SpvBridge {
     ///    A min_depth of 0 just means that the header is canon at all.
     ///    A min_depth of 1 means there is at least one block confirmation afterward.
     /// 4. The merkle proof must be valid
-    function verify_transaction(uint256 tx_hash, uint256 header_hash, uint256 min_depth, MerkleProof calldata p) external payable returns (bool){
+    function verify_transaction(
+        uint256 tx_hash,
+        uint256 header_hash,
+        uint256 min_depth,
+        MerkleProof calldata p
+    ) external payable returns (bool) {
         require(msg.value >= verify_fee, "insufficient verification fee");
 
         Header storage header = headers[header_hash];
@@ -233,7 +252,12 @@ contract SpvBridge {
         return true;
     }
 
-    function verify_state(StateClaim memory claim, uint256 block_hash, uint256 min_depth, MerkleProof calldata p) external payable returns (bool) {
+    function verify_state(
+        StateClaim memory claim,
+        uint256 block_hash,
+        uint256 min_depth,
+        MerkleProof calldata p
+    ) external payable returns (bool) {
         // FIXME, this is a hack to make the tests pass
         claim;
         block_hash;
