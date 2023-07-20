@@ -136,8 +136,8 @@ contract SpvBridge {
         // Verify the height increases by 1
         require(parent_header.height + 1 == header.height, "incorrect height");
 
-        // // Verify the PoW
-        // require(header_hash < difficulty_threshold, "PoW threshold not met");
+        // Verify the PoW
+        require(header_hash < difficulty_threshold, "PoW threshold not met");
         
         // Add the new header to the database
         // and the fee recipient to the database
