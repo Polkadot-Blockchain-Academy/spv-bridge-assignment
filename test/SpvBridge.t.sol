@@ -66,10 +66,9 @@ contract SpvBridgeTest is Test {
         Header memory child = make_child(genesis);
         uint256 child_hash = uint(keccak256(abi.encode(child)));
 
-        // FIXME WTF isn't the event validation working?
         // Expect the event
-        // vm.expectEmit();
-        // emit HeaderSubmitted(child_hash, 1, player);
+        vm.expectEmit();
+        emit HeaderSubmitted(child_hash, 101, player);
 
         // Submit the new header
         vm.prank(player);
