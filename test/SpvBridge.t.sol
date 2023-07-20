@@ -6,7 +6,8 @@ import "../src/SpvBridge.sol";
 
 contract SpvBridgeTest is Test {
     SpvBridge public bridge;
-    uint threshold = 10_000_000_000;
+    // Threshold is max / 4 so we have about a 1 in 4 chance of finding a valid nonce
+    uint threshold = uint256(0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff) / 4;
     uint relay_fee = 1_000;
     Header genesis;
 
@@ -46,13 +47,19 @@ contract SpvBridgeTest is Test {
     }
 
     function testSubmitExtendLongestChain() public {
+        // Calculate a new header
         Header memory child = make_child(genesis);
-
-        bridge.submit_new_header(child);
         uint256 child_hash = uint(keccak256(abi.encode(child)));
 
+        // Expect the event
         vm.expectEmit();
         emit HeaderSubmitted(child_hash, 1, 0x0000000000000000000000000000000000000000);
+
+        // Submit the new header
+        bridge.submit_new_header(child);
+        
+        // FIXME Validate the storage
+        
     }
 }
 
