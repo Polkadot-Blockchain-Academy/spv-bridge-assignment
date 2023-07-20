@@ -208,13 +208,12 @@ contract SpvBridge {
         require(msg.value >= verify_fee, "insufficient verification fee");
 
         Header storage header = headers[header_hash];
-        //FIXME, why are these test failing?
-        // if (header_is_known(header_hash)) {
-        //     return false;
-        // }
-        // if (header_is_canon(header_hash)) {
-        //     return false;
-        // }
+        if (!header_is_known(header_hash)) {
+            return false;
+        }
+        if (!header_is_canon(header_hash)) {
+            return false;
+        }
         if (best_height - header.height < min_depth) {
             return false;
         }
