@@ -3,18 +3,22 @@
 #[ink::contract]
 mod spv_bridge {
     use ink::storage::Mapping;
+    use ink::env::hash::{Sha2x256, HashOutput};
 
-    // TODO: Hash type
-    #[ink::storage_item]
-    pub type Hash = u64;
+    pub type HashValue = [u8; 32];
+
 
     /// A block header from the source chain.
-    #[ink::storage_item]
+    #[derive(Debug, Copy, Clone, PartialEq, Eq, scale::Decode, scale::Encode)]
+    #[cfg_attr(
+        feature = "std",
+        derive(ink::storage::traits::StorageLayout, scale_info::TypeInfo)
+    )]
     pub struct Header {
         /// The height of this block in the chain
         height: u64,
         /// The hash of this block's parent
-        parent: Hash,
+        parent: HashValue,
         /// The merkle tree root of the storage
         storage_root: u64,
         /// The merkle tree root of the transactions included in the block
@@ -30,6 +34,11 @@ mod spv_bridge {
     ///
     /// We stub the proof system because students already built exactly this in assignment 1.
     /// For this assignment, there is enough to focus on in the smart contract and blockchain aspects.
+    #[derive(Debug, Copy, Clone, PartialEq, Eq, scale::Decode, scale::Encode)]
+    #[cfg_attr(
+        feature = "std",
+        derive(ink::storage::traits::StorageLayout, scale_info::TypeInfo)
+    )]
     pub struct MerkleProof {
         verifies: bool,
     }
@@ -50,6 +59,11 @@ mod spv_bridge {
     ///
     /// For assignment purposes, the storage model doesn't matter so much because we stub the proofs.
     /// Nonethless, we give a somewhat realistic model.
+    #[derive(Debug, Copy, Clone, PartialEq, Eq, scale::Decode, scale::Encode)]
+    #[cfg_attr(
+        feature = "std",
+        derive(ink::storage::traits::StorageLayout, scale_info::TypeInfo)
+    )]
     pub struct StateClaim {
         key: u64,
         value: u64,
@@ -60,16 +74,16 @@ mod spv_bridge {
     pub struct SpvBridge {
         /// The main source chain header database.
         /// Maps header hashes to complete headers.
-        headers: Mapping<Hash, Header>,
+        headers: Mapping<HashValue, Header>,
 
         /// A representation of the canonical source chain.
         /// Maps block heights to the canonical source block hash at that high.
         /// Updates when are-org happens
-        cannon_chain: Mapping<u64, u64>,
+        cannon_chain: Mapping<u64, HashValue>,
 
         /// The user who submitted each block hash.
         /// Fees paid by verifiers will go to this address.
-        fee_recipient: Mapping<Hash, AccountId>,
+        fee_recipient: Mapping<HashValue, AccountId>,
 
         /// The height of the current best known source chain
         best_height: u64,
@@ -109,7 +123,7 @@ mod spv_bridge {
     /// Someone has successfully submitted a source chain header.
     #[ink(event)]
     pub struct HeaderSubmitted {
-        block_hash: Hash,
+        block_hash: HashValue,
         block_height: u64,
         #[ink(topic)]
         submitter: AccountId
@@ -132,24 +146,25 @@ mod spv_bridge {
         pub fn new(source_genesis_header: Header, difficulty: u64, init_relay_fee: u64, init_verify_fee: u64) -> Self {
             let caller = Self::env().caller();
 
-            let headers = Mapping::default();
-            let cannon_chain = Mapping::default();
-            let fee_recipient = Mapping::default();
+            let mut headers = Mapping::default();
+            let mut cannon_chain = Mapping::default();
+            let mut fee_recipient = Mapping::default();
 
             let difficulty_threshold = difficulty;
             let relay_fee = init_relay_fee;
             let verify_fee = init_verify_fee;
 
             // Calculate header hash and put header in storage
-            let h: Hash = source_genesis_header; // TODO: Hashing function
-            headers.insert(h, source_genesis_header);
+            let mut h = <Sha2x256 as HashOutput>::Type::default();
+            ink::env::hash_encoded::<Sha2x256, _>(&source_genesis_header, &mut h);
+            headers.insert(h, &source_genesis_header);
             
              // Update other storages
             let best_height = source_genesis_header.height;
-            cannon_chain.insert(best_height, h);
+            cannon_chain.insert(best_height, &h);
 
             // Record the deployer as the fee recipient for the checkpoint block
-            fee_recipient.insert(h, caller);
+            fee_recipient.insert(h, &caller);
 
             Self {
                 headers,
@@ -188,22 +203,22 @@ mod spv_bridge {
         ///    A min_depth of 1 means there is at least one block confirmation afterward.
         /// 4. The merkle proof must be valid
         #[ink(message, payable)]
-        pub fn verify_transaction(&mut self, tx_hash: Hash, header_hash: Hash, min_depth: u64, p: MerkleProof) -> Result<bool> {
+        pub fn verify_transaction(&mut self, tx_hash: HashValue, header_hash: HashValue, min_depth: u64, p: MerkleProof) -> Result<bool> {
             todo!()
         }
 
         #[ink(message, payable)]
-        pub fn verify_state(&mut self, claim: StateClaim, block_hash: Hash, min_depth: u64, p: MerkleProof) -> Result<bool> {
+        pub fn verify_state(&mut self, claim: StateClaim, block_hash: HashValue, min_depth: u64, p: MerkleProof) -> Result<bool> {
             todo!()
         }
 
         /// A helper function to detect whether a header exists in the storage
-        pub fn  header_is_known(header_hash: Hash) -> bool {
+        pub fn  header_is_known(header_hash: HashValue) -> bool {
             todo!()
         }
 
         /// A helper unction to determine whether a header is in the canon chain
-        pub fn header_is_canon(header_hash: Hash) -> bool {
+        pub fn header_is_canon(header_hash: HashValue) -> bool {
             todo!()
         }
     }
