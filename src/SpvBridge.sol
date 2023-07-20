@@ -27,7 +27,11 @@ struct MerkleProof {
 }
 
 /// (Stubbed) Verify whether a Merkle proof is valid against the given root.
-function check_merkle_proof(uint256 claim_hash, MerkleProof memory proof, uint256 merkle_root) pure returns (bool) {
+function check_merkle_proof(
+    uint256 claim_hash,
+    MerkleProof memory proof,
+    uint256 merkle_root
+) pure returns (bool) {
     // This is where the actual merkle proof checking logic _would_ go
     // if we weren't stubbing the proofs. Instead this stub is given.
     // We mention the variable to silence the unused variable warning.
@@ -55,7 +59,6 @@ struct StateClaim {
 /// from a foreign PoW blockchain for validation. It then allows (potentially different)
 /// users to verify claims about what transactions and state exist on the source chain.
 contract SpvBridge {
-
     /// The main source chain header database.
     /// Maps header hashes to complete headers.
     mapping(uint256 => Header) headers;
@@ -99,7 +102,11 @@ contract SpvBridge {
     }
 
     /// Someone has successfully submitted a source chain header.
-    event HeaderSubmitted(uint256 block_hash, uint256 block_height, address submitter);
+    event HeaderSubmitted(
+        uint256 block_hash,
+        uint256 block_height,
+        address submitter
+    );
 
     /// Submit a new source chain block header to the bridge for verification.
     /// In order for the new header to be valid, these conditions must be met:
@@ -111,7 +118,6 @@ contract SpvBridge {
     /// Once the block is validated you must determine whether this causes
     /// a re-org or not, and update storage accordingly.
     function submit_new_header(Header calldata header) external {
-        
         uint256 header_hash = uint(keccak256(abi.encode(header)));
 
         // Check if the block itself is already known.
@@ -126,7 +132,7 @@ contract SpvBridge {
 
         // Verify the PoW
         require(header_hash < difficulty_threshold, "PoW threshold not met");
-        
+
         // Add the new header to the database
         // and the fee recipient to the database
         headers[header_hash] = header;
@@ -178,11 +184,21 @@ contract SpvBridge {
     /// 2. The block is in the best chain
     /// 3. The block's height in the best chain is at least `min_depth` before the tip of the chain
     /// 4. The merkle proof must be valid
-    function verify_transaction(uint256 tx_hash, uint256 block_hash, uint256 min_depth, MerkleProof calldata p) external returns (bool){
+    function verify_transaction(
+        uint256 tx_hash,
+        uint256 block_hash,
+        uint256 min_depth,
+        MerkleProof calldata p
+    ) external returns (bool) {
         // TODO
     }
 
-    function verify_state(StateClaim memory claim, uint256 block_hash, uint256 min_depth, MerkleProof calldata p) external returns (bool) {
+    function verify_state(
+        StateClaim memory claim,
+        uint256 block_hash,
+        uint256 min_depth,
+        MerkleProof calldata p
+    ) external returns (bool) {
         // TODO
     }
 }
