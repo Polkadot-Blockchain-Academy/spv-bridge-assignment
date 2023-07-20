@@ -189,7 +189,7 @@ contract SpvBridgeTest is Test {
 
     //TODO There are many more ways that a transaction or state verification can fail,
     // that we have not yet tested for.
-    // You may be wiise to add some tests o your own to ensure your code is working as expected.
+    // You would be wise to add some tests of your own to ensure your code is working as expected.
 
     function testStateVerificationSuccess() public {
         // We start by creating a linear source chain that looks like this
