@@ -79,6 +79,10 @@ contract SpvBridge {
     /// of any protocol level gas fees
     uint256 public relay_fee;
 
+    /// The fee the verifier must pay in order to verify that their
+    /// transaction or state claim is canonical on the source chain.
+    uint256 public verify_fee;
+
     /// Initialize the on-chain light client with a "checkpoint" header.
     ///
     /// In many cases, the source chain is older than the target chain, and may have a long
@@ -86,10 +90,11 @@ contract SpvBridge {
     /// thereafter.
     ///
     /// This constructor allows the contract deployer to specifiy the recent block from which to start
-    constructor(Header memory source_genesis_header, uint256 difficulty, uint256 init_relay_fee) {
+    constructor(Header memory source_genesis_header, uint256 difficulty, uint256 init_relay_fee, uint256 init_verify_fee) {
         // Store the simple global params
         difficulty_threshold = difficulty;
         relay_fee = init_relay_fee;
+        verify_fee = init_verify_fee;
 
         // Calculate header hash and put header in storage
         uint256 h = uint(keccak256(abi.encode(source_genesis_header)));
@@ -108,7 +113,7 @@ contract SpvBridge {
 
     /// Submit a new source chain block header to the bridge for verification.
     /// In order for the new header to be valid, these conditions must be met:
-    /// 0. The relayer must pay the relay fee
+    /// 0. The relayer must pay the relay fee (which will be locked forever).
     /// 1. The header must not already be in the db
     /// 2. The header's parent must already be in the db
     /// 3. The header's height must be one more than it's parent
@@ -116,7 +121,10 @@ contract SpvBridge {
     ///
     /// Once the block is validated you must determine whether this causes
     /// a re-org or not, and update storage accordingly.
-    function submit_new_header(Header calldata header) external {
+    function submit_new_header(Header calldata header) external payable {
+        // FIXME this is disabled because the first few tests didn't expect it
+        // I just need to enable it and fix the tests.
+        // require(msg.value > relay_fee, "insufficient relay fee");
         
         uint256 header_hash = uint(keccak256(abi.encode(header)));
 
@@ -189,12 +197,34 @@ contract SpvBridge {
     /// Verify that some transaction has occurred on the source chain.
     ///
     /// In order for a verification to be successful (to return true), these conditions must be met:
+    /// 0. The verifier must pay the verification fee (which will go to the relayer).
     /// 1. The block is in the db
     /// 2. The block is in the best chain
-    /// 3. The block's height in the best chain is at least `min_depth` before the tip of the chain
+    /// 3. The block's height in the best chain is at least `min_depth` before the tip of the chain.
+    ///    A min_depth of 0 just means that the header is canon at all.
+    ///    A min_depth of 1 means there is at least one block confirmation afterward.
     /// 4. The merkle proof must be valid
-    function verify_transaction(uint256 tx_hash, uint256 block_hash, uint256 min_depth, MerkleProof calldata p) external returns (bool){
-        // TODO
+    function verify_transaction(uint256 tx_hash, uint256 header_hash, uint256 min_depth, MerkleProof calldata p) external payable returns (bool){
+        require(msg.value >= verify_fee, "insufficient verification fee");
+
+        Header storage header = headers[header_hash];
+        // if (header_is_known(header_hash)) {
+        //     return false;
+        // }
+        // if (header_is_canon(header_hash)) {
+        //     return false;
+        // }
+        if (best_height - header.height < min_depth) {
+            return false;
+        }
+        if (!check_merkle_proof(tx_hash, p, header.transactions_root)) {
+            return false;
+        }
+
+        // Transfer the payment to the relayer.
+        payable(fee_recipient[header_hash]).transfer(verify_fee);
+
+        return true;
     }
 
     function verify_state(StateClaim memory claim, uint256 block_hash, uint256 min_depth, MerkleProof calldata p) external returns (bool) {

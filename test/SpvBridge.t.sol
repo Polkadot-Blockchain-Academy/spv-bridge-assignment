@@ -9,6 +9,7 @@ contract SpvBridgeTest is Test {
     // Threshold is max / 4 so we have about a 1 in 4 chance of finding a valid nonce
     uint threshold = uint256(0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff) / 4;
     uint relay_fee = 1_000;
+    uint verify_fee = 100;
     Header genesis;
     uint genesis_hash;
     address player;
@@ -55,8 +56,9 @@ contract SpvBridgeTest is Test {
         genesis_hash = uint(keccak256(abi.encode(genesis)));
 
         vm.prank(player);
-        bridge = new SpvBridge(genesis, threshold, relay_fee);
+        bridge = new SpvBridge(genesis, threshold, relay_fee, verify_fee);
         player = address(0);
+        deal(player, 10_000 ether);
     }
 
     function testSubmitExtendLongestChain() public {
@@ -160,6 +162,34 @@ contract SpvBridgeTest is Test {
         assertEq(bridge.fee_recipient(c_hash), player);
         assertEq(bridge.fee_recipient(d_hash), player);
     }
+
+    function testTxVerificationSuccess() public {
+        // We start by creating a linear source chain that looks like this
+        // G---A
+        Header memory a = make_child(genesis);
+
+        vm.prank(player);
+        bridge.submit_new_header{value: relay_fee}(a);
+
+        // Now we try to validate a transaction using the stubbed logic
+        assert(bridge.verify_transaction{value: verify_fee}(0, genesis_hash, 0, MerkleProof({verifies: true})));
+    }
+
+    function testTxVerificationFailure() public {
+        // We start by creating a linear source chain that looks like this
+        // G---A
+        Header memory a = make_child(genesis);
+
+        vm.prank(player);
+        bridge.submit_new_header{value: relay_fee}(a);
+
+        // Now we try to validate a transaction using the stubbed logic
+        assert(!bridge.verify_transaction{value: verify_fee}(0, genesis_hash, 0, MerkleProof({verifies: false})));
+    }
+
+    //TODO There are many more ways that a transaction or stateverification can fail,
+    // that we have not yet tested for.
+    // You may be wiise to add some tests o your own to ensure your code is working as expected.
 }
 
 // Test braindump
