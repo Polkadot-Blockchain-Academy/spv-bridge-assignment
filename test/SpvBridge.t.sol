@@ -120,6 +120,46 @@ contract SpvBridgeTest is Test {
         assertEq(bridge.fee_recipient(b_hash), player);
         assertEq(bridge.fee_recipient(c_hash), player);
     }
+
+    function testSubmitReorgChain() public {
+
+        // We start by creating a linear source chain that looks like this
+        // G---A
+
+        // Calculate new headers and submit
+        Header memory a = make_child(genesis);
+        uint256 a_hash = uint(keccak256(abi.encode(a)));
+
+        // Submit the chain to the bridge
+        vm.prank(player);
+        bridge.submit_new_header(a);
+
+        // Now we create a fork in the source chain.
+        // The fork is long enough to cause a re-org.
+        // G---A
+        //  \
+        //   --C---D
+
+        Header memory c = make_child(genesis, 1);
+        uint256 c_hash = uint(keccak256(abi.encode(c)));
+        Header memory d = make_child(c, 1);
+        uint256 d_hash = uint(keccak256(abi.encode(d)));
+
+        vm.prank(player);
+        bridge.submit_new_header(c);
+        vm.prank(player);
+        bridge.submit_new_header(d);
+        
+        // Validate the storage
+        assertEq(bridge.cannon_chain(100), genesis_hash);
+        assertEq(bridge.cannon_chain(101), c_hash);
+        assertEq(bridge.cannon_chain(102), d_hash);
+
+        assertEq(bridge.fee_recipient(genesis_hash), player);
+        assertEq(bridge.fee_recipient(a_hash), player);
+        assertEq(bridge.fee_recipient(c_hash), player);
+        assertEq(bridge.fee_recipient(d_hash), player);
+    }
 }
 
 // Test braindump
