@@ -58,26 +58,26 @@ contract SpvBridge {
 
     /// The main source chain header database.
     /// Maps header hashes to complete headers.
-    mapping(uint256 => Header) headers;
+    mapping(uint256 => Header) public headers;
 
     /// A representation of the canonical source chain.
     /// Maps block heights to the canonical source block hash at that high.
     /// Updates when are-org happens
-    mapping(uint256 => uint256) cannon_chain;
+    mapping(uint256 => uint256) public cannon_chain;
 
     /// The user who submitted each block hash.
     /// Fees paid by verifiers will go to this address.
-    mapping(uint256 => address) fee_recipient;
+    mapping(uint256 => address) public fee_recipient;
 
     /// The height of the current best known source chain
-    uint256 best_height;
+    uint256 public best_height;
 
     /// The difficulty threshold for the PoW
-    uint256 difficulty_threshold;
+    uint256 public difficulty_threshold;
 
     /// The fee the relayer must pay in order to relay a block on top
     /// of any protocol level gas fees
-    uint256 relay_fee;
+    uint256 public relay_fee;
 
     /// Initialize the on-chain light client with a "checkpoint" header.
     ///
