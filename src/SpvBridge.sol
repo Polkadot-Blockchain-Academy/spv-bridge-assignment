@@ -73,7 +73,11 @@ contract SpvBridge {
     uint256 best_height;
 
     /// The difficulty threshold for the PoW
-    uint256 difficulty_threshold = 5000;
+    uint256 difficulty_threshold;
+
+    /// The fee the relayer must pay in order to relay a block on top
+    /// of any protocol level gas fees
+    uint256 relay_fee;
 
     /// Initialize the on-chain light client with a "checkpoint" header.
     ///
@@ -82,9 +86,10 @@ contract SpvBridge {
     /// thereafter.
     ///
     /// This constructor allows the contract deployer to specifiy the recent block from which to start
-    constructor(Header memory source_genesis_header, uint256 difficulty) {
-        // Store the initial difficulty threshold
+    constructor(Header memory source_genesis_header, uint256 difficulty, uint256 relay_fee) {
+        // Store the simple global params
         difficulty_threshold = difficulty;
+        relay_fee = relay_fee;
 
         // Calculate header hash and put header in storage
         uint256 h = uint(keccak256(abi.encode(source_genesis_header)));
@@ -103,6 +108,7 @@ contract SpvBridge {
 
     /// Submit a new source chain block header to the bridge for verification.
     /// In order for the new header to be valid, these conditions must be met:
+    /// 0. The relayer must pay the relay fee
     /// 1. The header must not already be in the db
     /// 2. The header's parent must already be in the db
     /// 3. The header's height must be one more than it's parent
