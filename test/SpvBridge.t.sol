@@ -10,6 +10,8 @@ contract SpvBridgeTest is Test {
     uint threshold = uint256(0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff) / 4;
     uint relay_fee = 1_000;
     Header genesis;
+    uint genesis_hash;
+    address player;
 
     event HeaderSubmitted(uint256 block_hash, uint256 block_height, address submitter);
 
@@ -43,7 +45,11 @@ contract SpvBridgeTest is Test {
             pow_nonce: 1
         });
 
+        genesis_hash = uint(keccak256(abi.encode(genesis)));
+
+        vm.prank(player);
         bridge = new SpvBridge(genesis, threshold, relay_fee);
+        player = address(0);
     }
 
     function testSubmitExtendLongestChain() public {
@@ -57,14 +63,15 @@ contract SpvBridgeTest is Test {
         // emit HeaderSubmitted(child_hash, 1, 0x0000000000000000000000000000000000000000);
 
         // Submit the new header
+        vm.prank(player);
         bridge.submit_new_header(child);
         
         // Validate the storage
-        assertEq(bridge.cannon_chain(100), uint(keccak256(abi.encode(genesis))));
+        assertEq(bridge.cannon_chain(100), genesis_hash);
         assertEq(bridge.cannon_chain(101), child_hash);
-        // correct fee recipient set
-        // check block database
-        
+
+        assertEq(bridge.fee_recipient(genesis_hash), player);
+        assertEq(bridge.fee_recipient(child_hash), player);
     }
 }
 
