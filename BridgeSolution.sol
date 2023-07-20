@@ -169,10 +169,21 @@ contract SpvBridge {
     /// 3. The block's height in the best chain is at least `min_depth` before the tip of the chain
     /// 4. The merkle proof must be valid
     function verify_transaction(uint256 tx_hash, uint256 block_hash, uint256 min_depth, MerkleProof calldata p) external returns (bool){
-
+        // TODO
     }
 
     function verify_state(StateClaim claim, uint256 block_hash, uint256 min_depth, MerkleProof calldata p) external returns (bool) {
-
+        // TODO
     }
 }
+
+// Test braindump
+
+// constructor happy path
+// submit to extend longest chain
+// submit to add side chain
+// submit to cause re-org
+// Tx verification happy path
+// Tx verification fail path
+// State verification happy path
+// State verification one fail path
