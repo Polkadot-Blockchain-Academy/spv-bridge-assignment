@@ -121,8 +121,8 @@ mod spv_bridge {
         ///
         /// This constructor allows the contract deployer to specifiy the recent block from which to start
         #[ink(constructor)]
-        pub fn new(self, source_genesis_header: Header, difficulty: u64, init_relay_fee: u64, init_verify_fee: u64) -> Self {
-            let caller = self.env().caller();
+        pub fn new(source_genesis_header: Header, difficulty: u64, init_relay_fee: u64, init_verify_fee: u64) -> Self {
+            let caller = Self::env().caller();
 
             let headers = Mapping::default();
             let cannon_chain = Mapping::default();
@@ -138,10 +138,10 @@ mod spv_bridge {
             
              // Update other storages
             let best_height = source_genesis_header.height;
-            cannon_chain[best_height] = h;
+            cannon_chain.insert(best_height, h);
 
             // Record the deployer as the fee recipient for the checkpoint block
-            let fee_recipient[h] = caller;
+            fee_recipient.insert(h, caller);
 
             Self {
                 headers,
