@@ -4,16 +4,6 @@ This assignment covers material from Module 3: Blockchain and Module 4: Smart Co
 In it, you will build a btc-relay-like on-chain bridge smart contract.
 You will build this bridge in FIXME decide whether it is (BOTH wasm and evm, EITHER wasm or evm, JUST use solidity).
 
-## Solidity
-
-For your first implementation, you need to use a language that targets the EVM.
-This basically means Solidity or Vyper (although if you know some esoteric evm language, you are welcome to use that as well).
-
-## ink!
-
-For your second implementation, you need to use a language that targets wasm (the pallet-contracts interface).
-This basically means either ink! or ask (although, again, more exotic ones are also welcome).
-
 ## Primary Bridge Functionality
 
 The exact implementation of the bridge will vary depending on your language.
