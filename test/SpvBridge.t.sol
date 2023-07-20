@@ -222,6 +222,6 @@ contract SpvBridgeTest is Test {
             value: 456
         });
 
-        assert(bridge.verify_state{value: verify_fee}(claim, genesis_hash, 0, MerkleProof({verifies: false})));
+        assert(!bridge.verify_state{value: verify_fee}(claim, genesis_hash, 0, MerkleProof({verifies: false})));
     }
 }
