@@ -221,9 +221,6 @@ contract SpvBridge {
         require(msg.value >= verify_fee, "insufficient verification fee");
 
         Header storage header = headers[header_hash];
-        if (!header_is_known(header_hash)) {
-            return false;
-        }
         if (!header_is_canon(header_hash)) {
             return false;
         }
@@ -250,9 +247,6 @@ contract SpvBridge {
         uint256 claim_hash = uint(keccak256(abi.encode(claim)));
 
         Header storage header = headers[header_hash];
-        if (!header_is_known(header_hash)) {
-            return false;
-        }
         if (!header_is_canon(header_hash)) {
             return false;
         }
