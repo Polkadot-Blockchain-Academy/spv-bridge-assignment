@@ -44,7 +44,7 @@ mod spv_bridge {
     }
 
     impl MerkleProof {
-        pub fn check_merkle_proof(_claim: Hash, proof: MerkleProof, _merkle_root: Hash) {
+        pub fn check_merkle_proof(_claim: Hash, proof: MerkleProof, _merkle_root: Hash) -> bool {
             // This is where the actual merkle proof checking logic _would_ go
             // if we weren't stubbing the proofs. Instead this stub is given.
             proof.verifies
@@ -155,8 +155,7 @@ mod spv_bridge {
             let verify_fee = init_verify_fee;
 
             // Calculate header hash and put header in storage
-            let mut h = <Sha2x256 as HashOutput>::Type::default();
-            ink::env::hash_encoded::<Sha2x256, _>(&source_genesis_header, &mut h);
+            let h = Self::hash_header(source_genesis_header);
             headers.insert(h, &source_genesis_header);
             
              // Update other storages
@@ -210,6 +209,15 @@ mod spv_bridge {
         #[ink(message, payable)]
         pub fn verify_state(&mut self, claim: StateClaim, block_hash: HashValue, min_depth: u64, p: MerkleProof) -> Result<bool> {
             todo!()
+        }
+
+        /// Helper function to hash a block header.
+        /// It would be pretty reasonable to just put this inline.
+        /// But we provide it to help avoid bit-level errors from hashing diferently.
+        pub fn hash_header(header: Header) -> HashValue {
+            let mut hash_value = <Sha2x256 as HashOutput>::Type::default();
+            ink::env::hash_encoded::<Sha2x256, _>(&header, &mut hash_value);
+            hash_value
         }
 
         /// A helper function to detect whether a header exists in the storage
