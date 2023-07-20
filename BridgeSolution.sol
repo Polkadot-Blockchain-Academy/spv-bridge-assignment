@@ -109,7 +109,7 @@ contract SpvBridge {
     /// a re-org or not, and update storage accordingly.
     function submit_new_header(Header calldata header) external {
         
-        uint256 header_hash = uint(keccak256(abi.encode(h)));
+        uint256 header_hash = uint(keccak256(abi.encode(header)));
 
         // Check if the block itself is already known.
         require(!header_is_known(header), "header already submitted");
