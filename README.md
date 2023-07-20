@@ -14,16 +14,17 @@ This basically means Solidity or Vyper (although if you know some esoteric evm l
 For your second implementation, you need to use a language that targets wasm (the pallet-contracts interface).
 This basically means either ink! or ask (although, again, more exotic ones are also welcome).
 
-## The Bridge Spec
+## Primary Bridge Functionality
 
-Major TODO here - My sketch so far is in [BridgeInterface.sol](./BridgeInterface.sol).
-Basically we want staked users to be able to submit new headers. Actually, do they need to be staked if the source chain is PoW?
-The contract should have a challenge period during which challenges can result in slashed stake, details tbd.
-The contract should track forks near the tip - maybe an incentive to manually prune old forks.
-Contract should store all header hashes back to some starting point.
-Does it need to track all headers?
+The exact implementation of the bridge will vary depending on your language.
+There is detailed starter code in each language in this repository to guide you.
+Regardless of what language you choose, the bridge will have a few common features.
 
-Basically look at btc relay, see what it does, simplify it, and require that.
+* **Header Submission** - Any user may act as a relayer, submitting a header from the source chain, and it should be checked on-chain.
+* **Transaction Verification** - Any user may act as a verifier, checking whether a transaction that they care about is present in the  source chain
+* **State Verification** - Any user may act as a verifier, checking whether some state they care about is present in the source chain.
+* **Incentives** - Relayers should earn rewards for their service and verifiers should pay those rewards.
+We will use a simple system where the relayer pays a fee to submit (which is burned) and verifiers pay a fee to verify which is passed on to the relayer of the corresponding block.
 
 # Competencies
 
