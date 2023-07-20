@@ -208,6 +208,20 @@ contract SpvBridgeTest is Test {
         assert(bridge.verify_state{value: verify_fee}(claim, genesis_hash, 0, MerkleProof({verifies: true})));
     }
 
-    // TODO fail case
-    
+    function testStateVerificationFail() public {
+        // We start by creating a linear source chain that looks like this
+        // G---A
+        Header memory a = make_child(genesis);
+
+        vm.prank(player);
+        bridge.submit_new_header{value: relay_fee}(a);
+
+        // Now we try to validate a state claim using the stubbed logic
+        StateClaim memory claim = StateClaim({
+            key: 123,
+            value: 456
+        });
+
+        assert(bridge.verify_state{value: verify_fee}(claim, genesis_hash, 0, MerkleProof({verifies: false})));
+    }
 }
