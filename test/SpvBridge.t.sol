@@ -60,7 +60,7 @@ contract SpvBridgeTest is Test {
         // FIXME WTF isn't the event validation working?
         // Expect the event
         // vm.expectEmit();
-        // emit HeaderSubmitted(child_hash, 1, 0x0000000000000000000000000000000000000000);
+        // emit HeaderSubmitted(child_hash, 1, player);
 
         // Submit the new header
         vm.prank(player);
