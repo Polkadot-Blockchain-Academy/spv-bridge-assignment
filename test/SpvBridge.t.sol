@@ -15,13 +15,15 @@ contract SpvBridgeTest is Test {
 
     event HeaderSubmitted(uint256 block_hash, uint256 block_height, address submitter);
 
-    function make_child(Header memory parent) public view returns (Header memory) {
+    // Helper function to generate a child block.
+    // The tx_root can be passed in manually to allow unique forks.
+    function make_child(Header memory parent, uint256 tx_root) public view returns (Header memory) {
         uint256 parent_hash = uint(keccak256(abi.encode(parent)));
         Header memory child = Header ({
             height: parent.height + 1,
             parent: parent_hash,
             storage_root: 0,
-            transactions_root: 0,
+            transactions_root: tx_root,
             pow_nonce: 0
         });
 
@@ -30,6 +32,11 @@ contract SpvBridgeTest is Test {
         }
 
         return child;
+    }
+
+    // Helper function to generate a child block with zero tx_root.
+    function make_child(Header memory parent) public view returns (Header memory) {
+        return make_child(parent, 0);
     }
 
     function setUp() public {
@@ -72,6 +79,46 @@ contract SpvBridgeTest is Test {
 
         assertEq(bridge.fee_recipient(genesis_hash), player);
         assertEq(bridge.fee_recipient(child_hash), player);
+    }
+
+    function testSubmitSideChain() public {
+
+        // We start by creating a linear source chain that looks like this
+        // G---A---B
+
+        // Calculate new headers and submit
+        Header memory a = make_child(genesis);
+        uint256 a_hash = uint(keccak256(abi.encode(a)));
+        Header memory b = make_child(a);
+        uint256 b_hash = uint(keccak256(abi.encode(b)));
+
+        // Submit the chain to the bridge
+        vm.prank(player);
+        bridge.submit_new_header(a);
+        vm.prank(player);
+        bridge.submit_new_header(b);
+
+        // Now we create a fork in the source chain.
+        // The fork is not long enough to cause a re-org.
+        // We should be able to submit the header successfully, but it should not cause a re-org
+        // G---A---B
+        //  \
+        //   --C
+
+        Header memory c = make_child(genesis, 1);
+        uint256 c_hash = uint(keccak256(abi.encode(c)));
+        vm.prank(player);
+        bridge.submit_new_header(c);
+        
+        // Validate the storage
+        assertEq(bridge.cannon_chain(100), genesis_hash);
+        assertEq(bridge.cannon_chain(101), a_hash);
+        assertEq(bridge.cannon_chain(102), b_hash);
+
+        assertEq(bridge.fee_recipient(genesis_hash), player);
+        assertEq(bridge.fee_recipient(a_hash), player);
+        assertEq(bridge.fee_recipient(b_hash), player);
+        assertEq(bridge.fee_recipient(c_hash), player);
     }
 }
 
