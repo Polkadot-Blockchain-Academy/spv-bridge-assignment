@@ -100,24 +100,65 @@ contract SpvBridge {
 
     /// Submit a new source chain block header to the bridge for verification.
     /// In order for the new header to be valid, these conditions must be met:
-    /// 1. Not already be in the db
-    /// 2. Have a parent already in the db
-    function submit_new_header(Header calldata h) external {
+    /// 1. The header must not already be in the db
+    /// 2. The header's parent must already be in the db
+    /// 3. The header's height must be one more than it's parent
+    /// 4. The header's hash must satisfy the PoW threshold
+    ///
+    /// Once the block is validated you must determine whether this causes
+    /// a re-org or not, and update storage accordingly.
+    function submit_new_header(Header calldata header) external {
+        
+        uint256 header_hash = uint(keccak256(abi.encode(h)));
+
+        // Check if the block itself is already known.
+        require(!header_is_known(header), "header already submitted");
+
         // Check if the parent is in the database and if not revert.
-        require(header_is_known(h.parent));
-        Header memory parent_header = headers[h.parent];
+        require(header_is_known(header.parent), "unknown parent");
+        Header memory parent_header = headers[header.parent];
 
         // Verify the height increases by 1
-        require(parent_header.height + 1 == h.height);
+        require(parent_header.height + 1 == header.height, "incorrect height");
 
         // Verify the PoW
-        uint256 header_hash = uint(keccak256(abi.encode(h)));
-        require(header_hash < difficulty_threshold);
+        require(header_hash < difficulty_threshold, "PoW threshold not met");
         
         // Add the new header to the database
-        headers[header_hash] = h;
+        // and the fee recipient to the database
+        headers[header_hash] = header;
+        fee_recipient[header_hash] = msg.sender();
 
-        //TODO Emit event
+        // It is possible that this new header caused a source chain re-org
+        // which we need to handle here. Rather than determine whether a re-org
+        // happened at all, we will just check whether this gives us a new longest chain
+        if (header.height > best_height) {
+            best_height = header.height;
+            cannon_chain[header.height] = header;
+
+            // Any time we have a new longest chain, we run the re-org algo.
+            // In the case where it is actually just extending the already-longest chain
+            // we will take zero iterations through this loop.
+            uint256 ancestor = header.parent;
+            while (!header_is_canon(ancestor)) {
+                cannon_chain[ancestor.height] = ancestor;
+            }
+        }
+
+        // Emit event
+        emit HeaderSubmitted(header_hash, header.height, msg.sender());
+    }
+
+    /// A helper function to detect whether a header exists in the storage
+    function header_is_known(uint256 hash) public view returns (bool) {
+        //TODO read the header out of the storage
+        //TODO verify that it is not the all zero header
+    }
+
+    /// A helper unction to determine whether a header is in the canon chain
+    function header_is_canon(uint256 hash) public view returns (bool) {
+        //TODO read the header out of storage
+        //TODO use the header's block number to check whether it exists in the cannon chain storage
     }
 
     /// Verify that some transaction has occurred on the source chain.
