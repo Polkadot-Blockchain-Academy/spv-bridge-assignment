@@ -86,10 +86,10 @@ contract SpvBridge {
     /// thereafter.
     ///
     /// This constructor allows the contract deployer to specifiy the recent block from which to start
-    constructor(Header memory source_genesis_header, uint256 difficulty, uint256 relay_fee) {
+    constructor(Header memory source_genesis_header, uint256 difficulty, uint256 init_relay_fee) {
         // Store the simple global params
         difficulty_threshold = difficulty;
-        relay_fee = relay_fee;
+        relay_fee = init_relay_fee;
 
         // Calculate header hash and put header in storage
         uint256 h = uint(keccak256(abi.encode(source_genesis_header)));
@@ -166,15 +166,24 @@ contract SpvBridge {
     }
 
     /// A helper function to detect whether a header exists in the storage
-    function header_is_known(uint256 hash) public view returns (bool) {
-        //TODO read the header out of the storage
-        //TODO verify that it is not the all zero header
+    function header_is_known(uint256 header_hash) public view returns (bool) {
+        Header storage header = headers[header_hash];
+
+        // Verify that it is not the all zero header
+        return 
+            header.height != 0 ||
+            header.parent != 0 ||
+            header.storage_root != 0 ||
+            header.transactions_root !=0 ||
+            header.pow_nonce != 0;
     }
 
     /// A helper unction to determine whether a header is in the canon chain
-    function header_is_canon(uint256 hash) public view returns (bool) {
-        //TODO read the header out of storage
-        //TODO use the header's block number to check whether it exists in the cannon chain storage
+    function header_is_canon(uint256 header_hash) public view returns (bool) {
+        Header storage header = headers[header_hash];
+
+        // Use the header's height to check whether it exists in the cannon chain storage
+        return header_is_known(header_hash) && cannon_chain[header.height] == header_hash;
     }
 
     /// Verify that some transaction has occurred on the source chain.
