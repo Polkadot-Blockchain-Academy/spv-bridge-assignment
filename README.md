@@ -24,3 +24,17 @@ Contract should store all header hashes back to some starting point.
 Does it need to track all headers?
 
 Basically look at btc relay, see what it does, simplify it, and require that.
+
+# Competencies
+
+In this assignment, students will have the opportunity to demonstrate that they have acquired competencies in the following areas:
+
+1. Validate a block header
+2. Validate a transaction's existence in a block via Merkle proof
+3. Validate some state's existence at some block via Merkle proof
+
+
+1. Make basic smart contract-style safety checks
+  - Don't blindly overwrite storage
+  -
+2. 
