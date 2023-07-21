@@ -34,7 +34,11 @@ struct MerkleProof {
 /// This function works for both transaction and state proofs.
 /// For transactions, just pass the tx hash directly
 /// For state claims, pass the keccak hash of the encoded claim
-function check_merkle_proof(uint256 claim_hash, MerkleProof memory proof, uint256 merkle_root) pure returns (bool) {
+function check_merkle_proof(
+    uint256 claim_hash,
+    MerkleProof memory proof,
+    uint256 merkle_root
+) pure returns (bool) {
     // This is where the actual merkle proof checking logic _would_ go
     // if we weren't stubbing the proofs. Instead this stub is given.
     // We mention the variable to silence the unused variable warning.
@@ -62,7 +66,6 @@ struct StateClaim {
 /// from a foreign PoW blockchain for validation. It then allows (potentially different)
 /// users to verify claims about what transactions and state exist on the source chain.
 contract SpvBridge {
-
     /// The main source chain header database.
     /// Maps header hashes to complete headers.
     mapping(uint256 => Header) public headers;
@@ -97,7 +100,12 @@ contract SpvBridge {
     /// thereafter.
     ///
     /// This constructor allows the contract deployer to specifiy the recent block from which to start
-    constructor(Header memory source_genesis_header, uint256 difficulty, uint256 init_relay_fee, uint256 init_verify_fee) {
+    constructor(
+        Header memory source_genesis_header,
+        uint256 difficulty,
+        uint256 init_relay_fee,
+        uint256 init_verify_fee
+    ) {
         // Store the simple global params
         difficulty_threshold = difficulty;
         relay_fee = init_relay_fee;
@@ -116,7 +124,11 @@ contract SpvBridge {
     }
 
     /// Someone has successfully submitted a source chain header.
-    event HeaderSubmitted(uint256 block_hash, uint256 block_height, address submitter);
+    event HeaderSubmitted(
+        uint256 block_hash,
+        uint256 block_height,
+        address submitter
+    );
 
     /// Helper function to hash a block header.
     /// It would be pretty reasonable to just put this inline.
@@ -161,7 +173,12 @@ contract SpvBridge {
     ///    A min_depth of 0 just means that the header is canon at all.
     ///    A min_depth of 1 means there is at least one block confirmation afterward.
     /// 4. The merkle proof must be valid
-    function verify_transaction(uint256 tx_hash, uint256 header_hash, uint256 min_depth, MerkleProof calldata p) external payable returns (bool){
+    function verify_transaction(
+        uint256 tx_hash,
+        uint256 header_hash,
+        uint256 min_depth,
+        MerkleProof calldata p
+    ) external payable returns (bool) {
         // TODO fill this in
     }
 
@@ -169,7 +186,12 @@ contract SpvBridge {
     ///
     /// The checks performed are the same as when verifying a transaction.
     /// However, in this chase, you pass the hash of the state claim
-    function verify_state(StateClaim memory claim, uint256 header_hash, uint256 min_depth, MerkleProof calldata p) external payable returns (bool) {
+    function verify_state(
+        StateClaim memory claim,
+        uint256 header_hash,
+        uint256 min_depth,
+        MerkleProof calldata p
+    ) external payable returns (bool) {
         // TODO fill this in
     }
 
@@ -182,7 +204,11 @@ contract SpvBridge {
 
     /// This function is not graded. It is just for collecting feedback.
     /// About how much time (in minutes) did you spend on the exercises in this section?
-    function how_many_hours_did_you_spend_on_this_section() public pure returns(uint256) {
+    function how_many_hours_did_you_spend_on_this_section()
+        public
+        pure
+        returns (uint256)
+    {
         //TODO
     }
 }

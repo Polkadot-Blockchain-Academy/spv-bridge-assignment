@@ -7,20 +7,30 @@ import "../src/SpvBridge.sol";
 contract SpvBridgeTest is Test {
     SpvBridge public bridge;
     // Threshold is max / 4 so we have about a 1 in 4 chance of finding a valid nonce
-    uint threshold = uint256(0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff) / 4;
+    uint threshold =
+        uint256(
+            0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+        ) / 4;
     uint relay_fee = 1_000;
     uint verify_fee = 100;
     Header genesis;
     uint genesis_hash;
     address player;
 
-    event HeaderSubmitted(uint256 block_hash, uint256 block_height, address submitter);
+    event HeaderSubmitted(
+        uint256 block_hash,
+        uint256 block_height,
+        address submitter
+    );
 
     // Helper function to generate a child block.
     // The tx_root can be passed in manually to allow unique forks.
-    function make_child(Header memory parent, uint256 tx_root) public view returns (Header memory) {
+    function make_child(
+        Header memory parent,
+        uint256 tx_root
+    ) public view returns (Header memory) {
         uint256 parent_hash = uint(keccak256(abi.encode(parent)));
-        Header memory child = Header ({
+        Header memory child = Header({
             height: parent.height + 1,
             parent: parent_hash,
             storage_root: 0,
@@ -36,13 +46,14 @@ contract SpvBridgeTest is Test {
     }
 
     // Helper function to generate a child block with zero tx_root.
-    function make_child(Header memory parent) public view returns (Header memory) {
+    function make_child(
+        Header memory parent
+    ) public view returns (Header memory) {
         return make_child(parent, 0);
     }
 
     function setUp() public {
-
-        genesis = Header ({
+        genesis = Header({
             height: 100,
             parent: 0,
             storage_root: 0,
@@ -73,7 +84,7 @@ contract SpvBridgeTest is Test {
         // Submit the new header
         vm.prank(player);
         bridge.submit_new_header{value: relay_fee}(child);
-        
+
         // Validate the storage
         assertEq(bridge.canon_chain(100), genesis_hash);
         assertEq(bridge.canon_chain(101), child_hash);
@@ -83,7 +94,6 @@ contract SpvBridgeTest is Test {
     }
 
     function testSubmitSideChain() public {
-
         // We start by creating a linear source chain that looks like this
         // G---A---B
 
@@ -110,7 +120,7 @@ contract SpvBridgeTest is Test {
         uint256 c_hash = uint(keccak256(abi.encode(c)));
         vm.prank(player);
         bridge.submit_new_header{value: relay_fee}(c);
-        
+
         // Validate the storage
         assertEq(bridge.canon_chain(100), genesis_hash);
         assertEq(bridge.canon_chain(101), a_hash);
@@ -123,7 +133,6 @@ contract SpvBridgeTest is Test {
     }
 
     function testSubmitReorgChain() public {
-
         // We start by creating a linear source chain that looks like this
         // G---A
 
@@ -150,7 +159,7 @@ contract SpvBridgeTest is Test {
         bridge.submit_new_header{value: relay_fee}(c);
         vm.prank(player);
         bridge.submit_new_header{value: relay_fee}(d);
-        
+
         // Validate the storage
         assertEq(bridge.canon_chain(100), genesis_hash);
         assertEq(bridge.canon_chain(101), c_hash);
@@ -171,7 +180,14 @@ contract SpvBridgeTest is Test {
         bridge.submit_new_header{value: relay_fee}(a);
 
         // Now we try to validate a transaction using the stubbed logic
-        assert(bridge.verify_transaction{value: verify_fee}(0, genesis_hash, 0, MerkleProof({verifies: true})));
+        assert(
+            bridge.verify_transaction{value: verify_fee}(
+                0,
+                genesis_hash,
+                0,
+                MerkleProof({verifies: true})
+            )
+        );
     }
 
     function testTxVerificationFailure() public {
@@ -183,7 +199,14 @@ contract SpvBridgeTest is Test {
         bridge.submit_new_header{value: relay_fee}(a);
 
         // Now we try to validate a transaction using the stubbed logic
-        assert(!bridge.verify_transaction{value: verify_fee}(0, genesis_hash, 0, MerkleProof({verifies: false})));
+        assert(
+            !bridge.verify_transaction{value: verify_fee}(
+                0,
+                genesis_hash,
+                0,
+                MerkleProof({verifies: false})
+            )
+        );
     }
 
     //TODO There are many more ways that a transaction or state verification can fail,
@@ -199,12 +222,16 @@ contract SpvBridgeTest is Test {
         bridge.submit_new_header{value: relay_fee}(a);
 
         // Now we try to validate a state claim using the stubbed logic
-        StateClaim memory claim = StateClaim({
-            key: 123,
-            value: 456
-        });
+        StateClaim memory claim = StateClaim({key: 123, value: 456});
 
-        assert(bridge.verify_state{value: verify_fee}(claim, genesis_hash, 0, MerkleProof({verifies: true})));
+        assert(
+            bridge.verify_state{value: verify_fee}(
+                claim,
+                genesis_hash,
+                0,
+                MerkleProof({verifies: true})
+            )
+        );
     }
 
     function testStateVerificationFail() public {
@@ -216,11 +243,15 @@ contract SpvBridgeTest is Test {
         bridge.submit_new_header{value: relay_fee}(a);
 
         // Now we try to validate a state claim using the stubbed logic
-        StateClaim memory claim = StateClaim({
-            key: 123,
-            value: 456
-        });
+        StateClaim memory claim = StateClaim({key: 123, value: 456});
 
-        assert(!bridge.verify_state{value: verify_fee}(claim, genesis_hash, 0, MerkleProof({verifies: false})));
+        assert(
+            !bridge.verify_state{value: verify_fee}(
+                claim,
+                genesis_hash,
+                0,
+                MerkleProof({verifies: false})
+            )
+        );
     }
 }
