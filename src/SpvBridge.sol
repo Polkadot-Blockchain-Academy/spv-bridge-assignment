@@ -136,74 +136,17 @@ contract SpvBridge {
     /// Once the block is validated you must determine whether this causes
     /// a re-org or not, and update storage accordingly.
     function submit_new_header(Header calldata header) external payable {
-        require(msg.value >= relay_fee, "insufficient relay fee");
-        
-        uint256 header_hash = hash_header(header);
-
-        // Check if the block itself is already known.
-        require(!header_is_known(header_hash), "header already submitted");
-
-        // Check if the parent is in the database and if not revert.
-        require(header_is_known(header.parent), "unknown parent");
-        Header memory parent_header = headers[header.parent];
-
-        // Verify the height increases by 1
-        require(parent_header.height + 1 == header.height, "incorrect height");
-
-        // Verify the PoW
-        require(header_hash < difficulty_threshold, "PoW threshold not met");
-        
-        // Add the new header to the database
-        // and the fee recipient to the database
-        headers[header_hash] = header;
-        fee_recipient[header_hash] = msg.sender;
-
-        // It is possible that this new header caused a source chain re-org
-        // which we need to handle here. Rather than determine whether a re-org
-        // happened at all, we will just check whether this gives us a new longest chain
-        if (header.height > best_height) {
-            best_height = header.height;
-            canon_chain[header.height] = header_hash;
-
-            // Any time we have a new longest chain, we run the re-org algo.
-            // In the case where it is actually just extending the already-longest chain
-            // we will take zero iterations through this loop.
-            uint256 ancestor_hash = header.parent;
-            while (!header_is_canon(ancestor_hash)) {
-                // Look up the actual ancestor header
-                Header storage ancestor = headers[ancestor_hash];
-
-                // Make it canon
-                canon_chain[ancestor.height] = ancestor_hash;
-
-                // Get ready for the next iteration
-                ancestor_hash = ancestor.parent;
-            }
-        }
-
-        // Emit event
-        emit HeaderSubmitted(header_hash, header.height, msg.sender);
+        // TODO fill this in
     }
 
     /// A helper function to detect whether a header exists in the storage
     function header_is_known(uint256 header_hash) public view returns (bool) {
-        Header storage header = headers[header_hash];
-
-        // Verify that it is not the all zero header
-        return 
-            header.height != 0 ||
-            header.parent != 0 ||
-            header.storage_root != 0 ||
-            header.transactions_root !=0 ||
-            header.pow_nonce != 0;
+        // TODO fill this in
     }
 
     /// A helper unction to determine whether a header is in the canon chain
     function header_is_canon(uint256 header_hash) public view returns (bool) {
-        Header storage header = headers[header_hash];
-
-        // Use the header's height to check whether it exists in the cannon chain storage
-        return header_is_known(header_hash) && canon_chain[header.height] == header_hash;
+        // TODO fill this in
     }
 
     /// Verify that some transaction has occurred on the source chain.
@@ -217,21 +160,7 @@ contract SpvBridge {
     ///    A min_depth of 1 means there is at least one block confirmation afterward.
     /// 4. The merkle proof must be valid
     function verify_transaction(uint256 tx_hash, uint256 header_hash, uint256 min_depth, MerkleProof calldata p) external payable returns (bool){
-        require(msg.value >= verify_fee, "insufficient verification fee");
-
-        Header storage header = headers[header_hash];
-        if (
-            !header_is_canon(header_hash) ||
-            best_height - header.height < min_depth ||
-            !check_merkle_proof(tx_hash, p, header.transactions_root)
-        ) {
-            return false;
-        }
-
-        // Transfer the payment to the relayer.
-        payable(fee_recipient[header_hash]).transfer(verify_fee);
-
-        return true;
+        // TODO fill this in
     }
 
     /// Verify that some state exists on the source chain.
@@ -239,22 +168,6 @@ contract SpvBridge {
     /// The checks performed are the same as when verifying a transaction.
     /// However, in this chase, you pass the hash of the state claim
     function verify_state(StateClaim memory claim, uint256 header_hash, uint256 min_depth, MerkleProof calldata p) external payable returns (bool) {
-        require(msg.value >= verify_fee, "insufficient verification fee");
-
-        uint256 claim_hash = uint(keccak256(abi.encode(claim)));
-
-        Header storage header = headers[header_hash];
-        if (
-            !header_is_canon(header_hash) ||
-            best_height - header.height < min_depth ||
-            !check_merkle_proof(claim_hash, p, header.transactions_root)
-        ) {
-            return false;
-        }
-
-        // Transfer the payment to the relayer.
-        payable(fee_recipient[header_hash]).transfer(verify_fee);
-
-        return true;
+        // TODO fill this in
     }
 }
