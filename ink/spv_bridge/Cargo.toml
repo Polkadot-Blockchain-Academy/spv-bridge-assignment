@@ -3,7 +3,7 @@ name = "spv_bridge"
 version = "0.1.0"
 authors = ["Aaron Bassett <aaron.bassett@parity.io>"]
 edition = "2021"
-ublish = false
+publish = false
 
 [dependencies]
 ink = { version = "4.2.1", default-features = false }
