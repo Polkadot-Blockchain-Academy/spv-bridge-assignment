@@ -172,4 +172,17 @@ contract SpvBridge {
     function verify_state(StateClaim memory claim, uint256 header_hash, uint256 min_depth, MerkleProof calldata p) external payable returns (bool) {
         // TODO fill this in
     }
+
+    /// This function is not graded. It is just for collecting feedback.
+    /// On a scale from 0 - 100, with zero being extremely easy and 100 being extremely hard, how hard
+    /// did you find the exercises in this section?
+    function how_hard_was_this_section() public pure returns (uint256) {
+        //TODO
+    }
+
+    /// This function is not graded. It is just for collecting feedback.
+    /// About how much time (in minutes) did you spend on the exercises in this section?
+    function how_many_hours_did_you_spend_on_this_section() public pure returns(uint256) {
+        //TODO
+    }
 }

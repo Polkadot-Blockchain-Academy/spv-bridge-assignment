@@ -246,8 +246,8 @@ mod spv_bridge {
         }
 
         /// This function is not graded. It is just for collecting feedback.
-        /// About how much time (in hours) did you spend on the exercises in this section?
-        pub fn how_many_hours_did_you_spend_on_this_section() -> f32 {
+        /// About how much time (in minutes) did you spend on the exercises in this section?
+        pub fn how_many_minutes_did_you_spend_on_this_section() -> f32 {
             todo!()
         }
     }
