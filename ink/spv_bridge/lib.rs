@@ -7,7 +7,6 @@ mod spv_bridge {
 
     pub type HashValue = [u8; 32];
 
-
     /// A block header from the source chain.
     #[derive(Debug, Copy, Clone, PartialEq, Eq, scale::Decode, scale::Encode)]
     #[cfg_attr(
@@ -234,6 +233,19 @@ mod spv_bridge {
 
         /// A helper unction to determine whether a header is in the canon chain
         pub fn header_is_canon(header_hash: HashValue) -> bool {
+            todo!()
+        }
+
+        /// This function is not graded. It is just for collecting feedback.
+        /// On a scale from 0 - 100, with zero being extremely easy and 100 being extremely hard, how hard
+        /// did you find the exercises in this section?
+        pub fn how_hard_was_this_section() -> u8 {
+            todo!()
+        }
+
+        /// This function is not graded. It is just for collecting feedback.
+        /// About how much time (in hours) did you spend on the exercises in this section?
+        pub fn how_many_hours_did_you_spend_on_this_section() -> f32 {
             todo!()
         }
     }
