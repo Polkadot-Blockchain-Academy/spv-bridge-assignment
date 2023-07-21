@@ -116,6 +116,8 @@ mod spv_bridge {
         IncorrectHeight,
         /// PoW threshold has not been met
         PoWThresholdNotMet,
+        /// Attempted reward payment to a relayer failed,
+        PaymentFailed,
     }
 
     /// Type alias for the contract's `Result` type.
@@ -440,16 +442,16 @@ mod spv_bridge {
             let (mut bridge, genesis_header) = deploy_bridge(default_accounts.alice);
             let genesis_hash = SpvBridge::hash_header(genesis_header);
             let a_header = make_child(genesis_header);
-            let a_hash = SpvBridge::hash_header(a_header);
             
             let relay_response = ink::env::pay_with_call!(bridge.submit_new_header(a_header), RELAY_FEE);
             assert_eq!(relay_response, Ok(()));
 
-            assert!(
+            debug_assert_eq!(
                 ink::env::pay_with_call!(
                     bridge.verify_transaction([0u8; 32],genesis_hash, 0, MerkleProof { verifies: true } ),
                     VERIFY_FEE
-                )
+                ),
+                Ok(true)
             );
         }
 
@@ -463,7 +465,6 @@ mod spv_bridge {
             let (mut bridge, genesis_header) = deploy_bridge(default_accounts.alice);
             let genesis_hash = SpvBridge::hash_header(genesis_header);
             let a_header = make_child(genesis_header);
-            let a_hash = SpvBridge::hash_header(a_header);
             
             let relay_response = ink::env::pay_with_call!(bridge.submit_new_header(a_header), RELAY_FEE);
             assert_eq!(relay_response, Ok(()));
@@ -473,7 +474,7 @@ mod spv_bridge {
                     bridge.verify_transaction([0u8; 32],genesis_hash, 0, MerkleProof { verifies: false } ),
                     VERIFY_FEE
                 ),
-                false
+                Ok(false)
             );
         }
 
@@ -491,7 +492,6 @@ mod spv_bridge {
             let (mut bridge, genesis_header) = deploy_bridge(default_accounts.alice);
             let genesis_hash = SpvBridge::hash_header(genesis_header);
             let a_header = make_child(genesis_header);
-            let a_hash = SpvBridge::hash_header(a_header);
             
             let relay_response = ink::env::pay_with_call!(bridge.submit_new_header(a_header), RELAY_FEE);
             assert_eq!(relay_response, Ok(()));
@@ -501,11 +501,12 @@ mod spv_bridge {
                 value: 0,
             };
 
-            assert!(
+            assert_eq!(
                 ink::env::pay_with_call!(
                     bridge.verify_state(claim, genesis_hash, 0, MerkleProof { verifies: true } ),
                     VERIFY_FEE
-                )
+                ),
+                Ok(true)
             );
         }
 
@@ -519,7 +520,6 @@ mod spv_bridge {
             let (mut bridge, genesis_header) = deploy_bridge(default_accounts.alice);
             let genesis_hash = SpvBridge::hash_header(genesis_header);
             let a_header = make_child(genesis_header);
-            let a_hash = SpvBridge::hash_header(a_header);
             
             let relay_response = ink::env::pay_with_call!(bridge.submit_new_header(a_header), RELAY_FEE);
             assert_eq!(relay_response, Ok(()));
@@ -534,7 +534,7 @@ mod spv_bridge {
                     bridge.verify_state(claim, genesis_hash, 0, MerkleProof { verifies: false } ),
                     VERIFY_FEE
                 ),
-                false
+                Ok(false)
             );
         }
     }
