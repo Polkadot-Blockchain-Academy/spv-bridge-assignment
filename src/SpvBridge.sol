@@ -135,6 +135,8 @@ contract SpvBridge {
     ///
     /// Once the block is validated you must determine whether this causes
     /// a re-org or not, and update storage accordingly.
+    ///
+    /// The relay fee does not go to anyone. It is locked up forever; effectively burnt.
     function submit_new_header(Header calldata header) external payable {
         // TODO fill this in
     }

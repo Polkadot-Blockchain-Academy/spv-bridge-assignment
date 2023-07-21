@@ -185,6 +185,8 @@ mod spv_bridge {
         ///
         /// Once the block is validated you must determine whether this causes
         /// a re-org or not, and update storage accordingly.
+        ///
+        /// The relay fee does not go to anyone. It is locked up forever; effectively burnt.
         #[ink(message, payable)]
         pub fn submit_new_header(&mut self, header: Header) -> Result<()> {
             todo!()
