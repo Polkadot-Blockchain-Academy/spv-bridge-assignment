@@ -269,7 +269,7 @@ mod spv_bridge {
             child
         }
 
-        pub fn deploy_bridge(deployer: AccountId) -> (SpvBridge, HashValue) {
+        pub fn deploy_bridge(deployer: AccountId) -> (SpvBridge, Header) {
             set_next_caller(deployer);
 
             let source_genesis_header =  Header {
@@ -286,7 +286,7 @@ mod spv_bridge {
 
             let hash_value = SpvBridge::hash_header(source_genesis_header);
             
-            (spv_bridge, hash_value)
+            (spv_bridge, source_genesis_header)
         }
 
         #[ink::test]
@@ -294,13 +294,32 @@ mod spv_bridge {
             let default_accounts = default_accounts();
             set_next_caller(default_accounts.alice);
 
-            let (spv_bridge, hash_value) = deploy_bridge(default_accounts.alice);
-            assert_eq!(spv_bridge.fee_recipient.get(hash_value), Some(default_accounts.alice));
+            let (spv_bridge, genesis_header) = deploy_bridge(default_accounts.alice);
+            let genesis_hash = SpvBridge::hash_header(genesis_header);
+            assert_eq!(spv_bridge.fee_recipient.get(genesis_hash), Some(default_accounts.alice));
         }
 
         #[ink::test]
         fn test_submit_extend_longest_chain() {
-            todo!()
+            let default_accounts = default_accounts();
+            set_next_caller(default_accounts.alice);
+
+            let (mut bridge, genesis_header) = deploy_bridge(default_accounts.alice);
+            let genesis_hash = SpvBridge::hash_header(genesis_header);
+            let child_header = make_child(genesis_header);
+            let child_hash = SpvBridge::hash_header(child_header);
+
+            // FIXME How to attach a value
+            let relay_response = bridge.submit_new_header(child_header);
+            assert_eq!(relay_response, Ok(()));
+
+            // Validate Storage
+            assert_eq!(bridge.cannon_chain.get(100), Some(genesis_hash));
+            assert_eq!(bridge.cannon_chain.get(101), Some(child_hash));
+
+            assert_eq!(bridge.fee_recipient.get(genesis_hash), Some(default_accounts.alice));
+            assert_eq!(bridge.fee_recipient.get(child_hash), Some(default_accounts.alice));
+    
         }
 
         #[ink::test]
