@@ -234,6 +234,11 @@ mod spv_bridge {
 
     #[cfg(test)]
     mod tests {
+        // The threshold is set so that we have roughly 1 in 4 chance of finding a valid block.
+        const THRESHOLD: [u8; 32] = [63, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+        use ink_e2e::H256;
+
         use super::*;
 
         fn default_accounts(
@@ -243,6 +248,26 @@ mod spv_bridge {
 
         fn set_next_caller(caller: AccountId) {
             ink::env::test::set_caller::<Environment>(caller);
+        }
+
+
+        fn make_child(parent: Header) -> Header {
+            let mut child = Header {
+                height: parent.height + 1,
+                parent: SpvBridge::hash_header(parent),
+                storage_root: 0,
+                transactions_root: 0,
+                // The initial block is not checked; not even its pow seal;
+                // We put a non-zero nonce here to make sure this block
+                // isn't the default block.
+                pow_nonce: 1
+            };
+
+            while SpvBridge::hash_header(child) >= THRESHOLD {
+                child.pow_nonce = child.pow_nonce + 1;
+            }
+
+            child
         }
 
         #[ink::test]
