@@ -236,8 +236,8 @@ mod spv_bridge {
     mod tests {
         // The threshold is set so that we have roughly 1 in 4 chance of finding a valid block.
         const THRESHOLD: [u8; 32] = [63, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-        const RELAY_FEE = 1_000;
-        const VERIFY_FEE = 100;
+        const RELAY_FEE: u64 = 1_000;
+        const VERIFY_FEE: u64 = 100;
 
         use ink_e2e::H256;
 
@@ -269,10 +269,8 @@ mod spv_bridge {
             child
         }
 
-        #[ink::test]
-        fn test_constructor_works() {
-            let default_accounts = default_accounts();
-            set_next_caller(default_accounts.alice);
+        pub fn deploy_bridge(deployer: AccountId) -> (SpvBridge, HashValue) {
+            set_next_caller(deployer);
 
             let source_genesis_header =  Header {
                 height: 100,
@@ -287,6 +285,16 @@ mod spv_bridge {
             let spv_bridge = SpvBridge::new(source_genesis_header, THRESHOLD, RELAY_FEE, VERIFY_FEE);
 
             let hash_value = SpvBridge::hash_header(source_genesis_header);
+            
+            (spv_bridge, hash_value)
+        }
+
+        #[ink::test]
+        fn test_constructor_works() {
+            let default_accounts = default_accounts();
+            set_next_caller(default_accounts.alice);
+
+            let (spv_bridge, hash_value) = deploy_bridge(default_accounts.alice);
             assert_eq!(spv_bridge.fee_recipient.get(hash_value), Some(default_accounts.alice));
         }
 
