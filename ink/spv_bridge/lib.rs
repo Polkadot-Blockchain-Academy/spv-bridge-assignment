@@ -459,6 +459,10 @@ mod spv_bridge {
             assert!(!bridge.verify_transaction([0u8; 32],genesis_hash, 0, MerkleProof { verifies: false } ));
         }
 
+        //TODO There are many more ways that a transaction or state verification can fail,
+        // that we have not yet tested for.
+        // You would be wise to add some tests of your own to ensure your code is working as expected.
+        
         #[ink::test]
         fn test_state_verification_success() {
             // We start by creating a linear source chain that looks like this
@@ -475,7 +479,6 @@ mod spv_bridge {
             let relay_response = bridge.submit_new_header(a_header);
             assert_eq!(relay_response, Ok(()));
 
-
             let claim = StateClaim {
                 key: 0,
                 value: 0,
@@ -483,12 +486,31 @@ mod spv_bridge {
 
             // FIXME How to attach a value
             assert!(bridge.verify_state(claim, genesis_hash, 0, MerkleProof { verifies: true } ));
-        
         }
 
         #[ink::test]
         fn test_state_verification_failure() {
-            todo!()
+            // We start by creating a linear source chain that looks like this
+            // G---A
+            let default_accounts = default_accounts();
+            set_next_caller(default_accounts.alice);
+
+            let (mut bridge, genesis_header) = deploy_bridge(default_accounts.alice);
+            let genesis_hash = SpvBridge::hash_header(genesis_header);
+            let a_header = make_child(genesis_header);
+            let a_hash = SpvBridge::hash_header(a_header);
+            
+            // FIXME How to attach a value
+            let relay_response = bridge.submit_new_header(a_header);
+            assert_eq!(relay_response, Ok(()));
+
+            let claim = StateClaim {
+                key: 0,
+                value: 0,
+            };
+
+            // FIXME How to attach a value
+            assert!(!bridge.verify_state(claim, genesis_hash, 0, MerkleProof { verifies: false } ));
         }
     }
 
