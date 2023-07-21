@@ -206,8 +206,15 @@ mod spv_bridge {
             todo!()
         }
 
+        /// Verify that some state exists on the source chain.
+        ///
+        /// The checks performed are the same as when verifying a transaction.
+        /// However, in this chase, you pass the hash of the state claim
         #[ink(message, payable)]
         pub fn verify_state(&mut self, claim: StateClaim, block_hash: HashValue, min_depth: u64, p: MerkleProof) -> bool {
+            let mut claim_hash = <Sha2x256 as HashOutput>::Type::default();
+            ink::env::hash_encoded::<Sha2x256, _>(&claim, &mut claim_hash);
+            
             todo!()
         }
 
@@ -454,7 +461,29 @@ mod spv_bridge {
 
         #[ink::test]
         fn test_state_verification_success() {
-            todo!()
+            // We start by creating a linear source chain that looks like this
+            // G---A
+            let default_accounts = default_accounts();
+            set_next_caller(default_accounts.alice);
+
+            let (mut bridge, genesis_header) = deploy_bridge(default_accounts.alice);
+            let genesis_hash = SpvBridge::hash_header(genesis_header);
+            let a_header = make_child(genesis_header);
+            let a_hash = SpvBridge::hash_header(a_header);
+            
+            // FIXME How to attach a value
+            let relay_response = bridge.submit_new_header(a_header);
+            assert_eq!(relay_response, Ok(()));
+
+
+            let claim = StateClaim {
+                key: 0,
+                value: 0,
+            };
+
+            // FIXME How to attach a value
+            assert!(bridge.verify_state(claim, genesis_hash, 0, MerkleProof { verifies: true } ));
+        
         }
 
         #[ink::test]
