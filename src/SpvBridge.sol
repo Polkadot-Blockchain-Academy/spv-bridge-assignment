@@ -125,7 +125,6 @@ contract SpvBridge {
         return uint(keccak256(abi.encode(header)));
     }
 
-
     /// Submit a new source chain block header to the bridge for verification.
     /// In order for the new header to be valid, these conditions must be met:
     /// 0. The relayer must pay the relay fee (which will be locked forever).
@@ -237,7 +236,7 @@ contract SpvBridge {
 
     /// Verify that some state exists on the source chain.
     ///
-    /// The checks pereormed are the same as when verifying a transaction.
+    /// The checks performed are the same as when verifying a transaction.
     /// However, in this chase, you pass the hash of the state claim
     function verify_state(StateClaim memory claim, uint256 header_hash, uint256 min_depth, MerkleProof calldata p) external payable returns (bool) {
         require(msg.value >= verify_fee, "insufficient verification fee");
