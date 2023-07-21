@@ -254,11 +254,15 @@ mod spv_bridge {
 
 
         fn make_child(parent: Header) -> Header {
+            make_child_with_transactions_root(parent, 0)
+        }
+
+        fn make_child_with_transactions_root(parent: Header, tx_root: u64) -> Header {
             let mut child = Header {
                 height: parent.height + 1,
                 parent: SpvBridge::hash_header(parent),
                 storage_root: 0,
-                transactions_root: 0,
+                transactions_root: tx_root,
                 pow_nonce: 1
             };
 
@@ -319,12 +323,51 @@ mod spv_bridge {
 
             assert_eq!(bridge.fee_recipient.get(genesis_hash), Some(default_accounts.alice));
             assert_eq!(bridge.fee_recipient.get(child_hash), Some(default_accounts.alice));
-    
+
         }
 
         #[ink::test]
         fn test_submit_side_chain() {
-            todo!()
+            // We start by creating a linear source chain that looks like this
+            // G---A---B
+            let default_accounts = default_accounts();
+            set_next_caller(default_accounts.alice);
+
+            let (mut bridge, genesis_header) = deploy_bridge(default_accounts.alice);
+            let genesis_hash = SpvBridge::hash_header(genesis_header);
+            let a_header = make_child(genesis_header);
+            let a_hash = SpvBridge::hash_header(a_header);
+            let b_header = make_child(a_header);
+            let b_hash = SpvBridge::hash_header(b_header);
+
+            // FIXME How to attach a value
+            let relay_response = bridge.submit_new_header(a_header);
+            assert_eq!(relay_response, Ok(()));
+            let relay_response = bridge.submit_new_header(b_header);
+            assert_eq!(relay_response, Ok(()));
+
+            // Now we create a fork in the source chain.
+            // The fork is not long enough to cause a re-org.
+            // We should be able to submit the header successfully, but it should not cause a re-org
+            // G---A---B
+            //  \
+            //   --C
+
+            let c_header = make_child_with_transactions_root(genesis_header, 1);
+            let c_hash = SpvBridge::hash_header(c_header);
+            let relay_response = bridge.submit_new_header(c_header);
+            assert_eq!(relay_response, Ok(()));
+
+
+            // Validate Storage
+            assert_eq!(bridge.cannon_chain.get(100), Some(genesis_hash));
+            assert_eq!(bridge.cannon_chain.get(101), Some(a_hash));
+            assert_eq!(bridge.cannon_chain.get(102), Some(b_hash));
+
+            assert_eq!(bridge.fee_recipient.get(genesis_hash), Some(default_accounts.alice));
+            assert_eq!(bridge.fee_recipient.get(a_hash), Some(default_accounts.alice));
+            assert_eq!(bridge.fee_recipient.get(b_hash), Some(default_accounts.alice));
+            assert_eq!(bridge.fee_recipient.get(c_hash), Some(default_accounts.alice));
         }
 
         #[ink::test]
