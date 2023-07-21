@@ -208,7 +208,29 @@ mod spv_bridge {
         /// 4. The merkle proof must be valid
         #[ink(message, payable)]
         pub fn verify_transaction(&mut self, tx_hash: HashValue, header_hash: HashValue, min_depth: u64, p: MerkleProof) -> Result<bool> {
-            todo!()
+            if self.env().transferred_value() < self.verify_fee {
+                return Err(Error::InsufficientVerifyFee);
+            }
+
+            let Some(header) = self.headers.get(header_hash) else { return Ok(false); };
+
+            if !self.header_is_canon(header_hash) ||
+                self.best_height - header.height < min_depth ||
+                !MerkleProof::check_merkle_proof(tx_hash, p, header.transactions_root)
+            {
+                return Ok(false);
+            }
+
+            // Transfer the payment to the relayer.
+            let relayer = self
+                .fee_recipient
+                .get(header_hash)
+                .expect("header is known, so recipient should be registered");
+            self.env()
+                .transfer(relayer, self.verify_fee)
+                .map_err(|_| Error::PaymentFailed)?;
+
+            Ok(true)
         }
 
         /// Verify that some state exists on the source chain.
@@ -233,13 +255,14 @@ mod spv_bridge {
         }
 
         /// A helper function to detect whether a header exists in the storage
-        pub fn  header_is_known(&self, header_hash: HashValue) -> bool {
-            todo!()
+        pub fn header_is_known(&self, header_hash: HashValue) -> bool {
+            self.headers.get(header_hash).is_some()
         }
 
         /// A helper function to determine whether a header is in the canon chain
         pub fn header_is_canon(&self, header_hash: HashValue) -> bool {
-            todo!()
+            let Some(header) = self.headers.get(header_hash) else { return false; };
+            self.canon_chain.get(header.height) == Some(header_hash)
         }
 
         /// This function is not graded. It is just for collecting feedback.
