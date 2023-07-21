@@ -284,7 +284,7 @@ mod spv_bridge {
                 // isn't the default block.
                 pow_nonce: 1
             };
-            let spv_bridge = SpvBridge::new(source_genesis_header, THRESHOLD, 1000, 100);
+            let spv_bridge = SpvBridge::new(source_genesis_header, THRESHOLD, RELAY_FEE, VERIFY_FEE);
 
             let hash_value = SpvBridge::hash_header(source_genesis_header);
             assert_eq!(spv_bridge.fee_recipient.get(hash_value), Some(default_accounts.alice));
