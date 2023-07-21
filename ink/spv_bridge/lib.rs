@@ -207,7 +207,7 @@ mod spv_bridge {
         ///    A min_depth of 1 means there is at least one block confirmation afterward.
         /// 4. The merkle proof must be valid
         #[ink(message, payable)]
-        pub fn verify_transaction(&mut self, tx_hash: HashValue, header_hash: HashValue, min_depth: u64, p: MerkleProof) -> bool {
+        pub fn verify_transaction(&mut self, tx_hash: HashValue, header_hash: HashValue, min_depth: u64, p: MerkleProof) -> Result<bool> {
             todo!()
         }
 
@@ -216,7 +216,7 @@ mod spv_bridge {
         /// The checks performed are the same as when verifying a transaction.
         /// However, in this chase, you pass the hash of the state claim
         #[ink(message, payable)]
-        pub fn verify_state(&mut self, claim: StateClaim, block_hash: HashValue, min_depth: u64, p: MerkleProof) -> bool {
+        pub fn verify_state(&mut self, claim: StateClaim, block_hash: HashValue, min_depth: u64, p: MerkleProof) -> Result<bool> {
             let mut claim_hash = <Sha2x256 as HashOutput>::Type::default();
             ink::env::hash_encoded::<Sha2x256, _>(&claim, &mut claim_hash);
             
