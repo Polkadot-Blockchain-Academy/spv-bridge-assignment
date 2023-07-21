@@ -246,8 +246,6 @@ mod spv_bridge {
         const RELAY_FEE: u128 = 1_000;
         const VERIFY_FEE: u128 = 100;
 
-        use ink_e2e::H256;
-
         use super::*;
 
         fn default_accounts(
