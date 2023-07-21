@@ -202,18 +202,18 @@ mod spv_bridge {
         ///    A min_depth of 1 means there is at least one block confirmation afterward.
         /// 4. The merkle proof must be valid
         #[ink(message, payable)]
-        pub fn verify_transaction(&mut self, tx_hash: HashValue, header_hash: HashValue, min_depth: u64, p: MerkleProof) -> Result<bool> {
+        pub fn verify_transaction(&mut self, tx_hash: HashValue, header_hash: HashValue, min_depth: u64, p: MerkleProof) -> bool {
             todo!()
         }
 
         #[ink(message, payable)]
-        pub fn verify_state(&mut self, claim: StateClaim, block_hash: HashValue, min_depth: u64, p: MerkleProof) -> Result<bool> {
+        pub fn verify_state(&mut self, claim: StateClaim, block_hash: HashValue, min_depth: u64, p: MerkleProof) -> bool {
             todo!()
         }
 
         /// Helper function to hash a block header.
         /// It would be pretty reasonable to just put this inline.
-        /// But we provide it to help avoid bit-level errors from hashing diferently.
+        /// But we provide it to help avoid bit-level errors from hashing differently.
         pub fn hash_header(header: Header) -> HashValue {
             let mut hash_value = <Sha2x256 as HashOutput>::Type::default();
             ink::env::hash_encoded::<Sha2x256, _>(&header, &mut hash_value);
@@ -414,7 +414,22 @@ mod spv_bridge {
 
         #[ink::test]
         fn test_tx_verification_success() {
-            todo!()
+            // We start by creating a linear source chain that looks like this
+            // G---A
+            let default_accounts = default_accounts();
+            set_next_caller(default_accounts.alice);
+
+            let (mut bridge, genesis_header) = deploy_bridge(default_accounts.alice);
+            let genesis_hash = SpvBridge::hash_header(genesis_header);
+            let a_header = make_child(genesis_header);
+            let a_hash = SpvBridge::hash_header(a_header);
+            
+            // FIXME How to attach a value
+            let relay_response = bridge.submit_new_header(a_header);
+            assert_eq!(relay_response, Ok(()));
+
+            // FIXME How to attach a value
+            assert!(bridge.verify_transaction([0u8; 32],genesis_hash, 0, MerkleProof { verifies: true } ));
         }
 
         #[ink::test]
