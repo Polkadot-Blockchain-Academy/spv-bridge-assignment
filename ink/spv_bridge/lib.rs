@@ -89,7 +89,7 @@ mod spv_bridge {
         best_height: u64,
 
         /// The difficulty threshold for the PoW
-        difficulty_threshold: u64,
+        difficulty_threshold: HashValue,
 
         /// The fee the relayer must pay in order to relay a block on top
         /// of any protocol level gas fees
@@ -143,7 +143,7 @@ mod spv_bridge {
         ///
         /// This constructor allows the contract deployer to specifiy the recent block from which to start
         #[ink(constructor)]
-        pub fn new(source_genesis_header: Header, difficulty: u64, init_relay_fee: u64, init_verify_fee: u64) -> Self {
+        pub fn new(source_genesis_header: Header, difficulty: HashValue, init_relay_fee: u64, init_verify_fee: u64) -> Self {
             let caller = Self::env().caller();
 
             let mut headers = Mapping::default();
@@ -257,9 +257,6 @@ mod spv_bridge {
                 parent: SpvBridge::hash_header(parent),
                 storage_root: 0,
                 transactions_root: 0,
-                // The initial block is not checked; not even its pow seal;
-                // We put a non-zero nonce here to make sure this block
-                // isn't the default block.
                 pow_nonce: 1
             };
 
@@ -272,7 +269,23 @@ mod spv_bridge {
 
         #[ink::test]
         fn test_constructor_works() {
-            todo!()
+            let default_accounts = default_accounts();
+            set_next_caller(default_accounts.alice);
+
+            let source_genesis_header =  Header {
+                height: 100,
+                parent: [0; 32],
+                storage_root: 0,
+                transactions_root: 0,
+                // The initial block is not checked; not even its pow seal;
+                // We put a non-zero nonce here to make sure this block
+                // isn't the default block.
+                pow_nonce: 1
+            };
+            let spv_bridge = SpvBridge::new(source_genesis_header, THRESHOLD, 1000, 100);
+
+            let hash_value = SpvBridge::hash_header(source_genesis_header);
+            assert_eq!(spv_bridge.fee_recipient.get(hash_value), Some(default_accounts.alice));
         }
 
         #[ink::test]
