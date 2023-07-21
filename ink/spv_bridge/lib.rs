@@ -235,7 +235,7 @@ mod spv_bridge {
             todo!()
         }
 
-        /// A helper unction to determine whether a header is in the canon chain
+        /// A helper function to determine whether a header is in the canon chain
         pub fn header_is_canon(&self, header_hash: HashValue) -> bool {
             todo!()
         }
