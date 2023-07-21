@@ -2,7 +2,7 @@
 
 This assignment covers material from Module 3: Blockchain and Module 4: Smart Contracts.
 In it, you will build a btc-relay-like on-chain bridge smart contract.
-You will build this bridge in FIXME decide whether it is (BOTH wasm and evm, EITHER wasm or evm, JUST use solidity).
+You will build this bridge in either ink! or solidity. 
 
 ## Primary Bridge Functionality
 
