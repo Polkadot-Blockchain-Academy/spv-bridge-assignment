@@ -16,16 +16,30 @@ Regardless of what language you choose, the bridge will have a few common featur
 * **Incentives** - Relayers should earn rewards for their service and verifiers should pay those rewards.
 We will use a simple system where the relayer pays a fee to submit (which is burned) and verifiers pay a fee to verify which is passed on to the relayer of the corresponding block.
 
-# Competencies
+## Submission and Grading
+Work will only be graded if pushed to the `main` branch in Github before the deadline, all other branches will be ignored.
 
-In this assignment, students will have the opportunity to demonstrate that they have acquired competencies in the following areas:
+**NOTE: Your exam will be graded with a private set of integration tests.**
 
-1. Validate a block header
-2. Validate a transaction's existence in a block via Merkle proof
-3. Validate some state's existence at some block via Merkle proof
+This has some important implications:
 
+- Do not make anything private.
+- Do not change the name/signature of any function.
 
-1. Make basic smart contract-style safety checks
-  - Don't blindly overwrite storage
-  -
-2. 
+## Deadline
+
+The deadline for submission will be communicated when the assignment is first sent to you, and the Github classroom invitation link mentions this explicitly as well. All grades will be assessed using the commit present on main at the time of the deadline. All other work will be ignored.
+
+## Private Test Suite and Manual Grading
+
+The primary way we will grade your work is through an automated testing suite that is kept private to the Academy team.
+
+There are also some human-graded aspects such as:
+
+- Ensuring that your code is of high quality and readability.
+- Ensuring that your solutions are not plagiarized.
+- Ensuring that you haven't imported a dependency to do the heavy lifting of your code problem.
+
+## 🚀 Good luck! 🚀
+
+Please reach out to the Academy team if you have any questions or concerns related to this assignment.
