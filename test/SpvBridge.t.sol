@@ -75,8 +75,8 @@ contract SpvBridgeTest is Test {
         bridge.submit_new_header{value: relay_fee}(child);
         
         // Validate the storage
-        assertEq(bridge.cannon_chain(100), genesis_hash);
-        assertEq(bridge.cannon_chain(101), child_hash);
+        assertEq(bridge.canon_chain(100), genesis_hash);
+        assertEq(bridge.canon_chain(101), child_hash);
 
         assertEq(bridge.fee_recipient(genesis_hash), player);
         assertEq(bridge.fee_recipient(child_hash), player);
@@ -112,9 +112,9 @@ contract SpvBridgeTest is Test {
         bridge.submit_new_header{value: relay_fee}(c);
         
         // Validate the storage
-        assertEq(bridge.cannon_chain(100), genesis_hash);
-        assertEq(bridge.cannon_chain(101), a_hash);
-        assertEq(bridge.cannon_chain(102), b_hash);
+        assertEq(bridge.canon_chain(100), genesis_hash);
+        assertEq(bridge.canon_chain(101), a_hash);
+        assertEq(bridge.canon_chain(102), b_hash);
 
         assertEq(bridge.fee_recipient(genesis_hash), player);
         assertEq(bridge.fee_recipient(a_hash), player);
@@ -152,9 +152,9 @@ contract SpvBridgeTest is Test {
         bridge.submit_new_header{value: relay_fee}(d);
         
         // Validate the storage
-        assertEq(bridge.cannon_chain(100), genesis_hash);
-        assertEq(bridge.cannon_chain(101), c_hash);
-        assertEq(bridge.cannon_chain(102), d_hash);
+        assertEq(bridge.canon_chain(100), genesis_hash);
+        assertEq(bridge.canon_chain(101), c_hash);
+        assertEq(bridge.canon_chain(102), d_hash);
 
         assertEq(bridge.fee_recipient(genesis_hash), player);
         assertEq(bridge.fee_recipient(a_hash), player);

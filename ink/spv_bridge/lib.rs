@@ -79,7 +79,7 @@ mod spv_bridge {
         /// A representation of the canonical source chain.
         /// Maps block heights to the canonical source block hash at that high.
         /// Updates when are-org happens
-        cannon_chain: Mapping<u64, HashValue>,
+        canon_chain: Mapping<u64, HashValue>,
 
         /// The user who submitted each block hash.
         /// Fees paid by verifiers will go to this address.
@@ -147,7 +147,7 @@ mod spv_bridge {
             let caller = Self::env().caller();
 
             let mut headers = Mapping::default();
-            let mut cannon_chain = Mapping::default();
+            let mut canon_chain = Mapping::default();
             let mut fee_recipient = Mapping::default();
 
             let difficulty_threshold = difficulty;
@@ -160,14 +160,14 @@ mod spv_bridge {
             
              // Update other storages
             let best_height = source_genesis_header.height;
-            cannon_chain.insert(best_height, &h);
+            canon_chain.insert(best_height, &h);
 
             // Record the deployer as the fee recipient for the checkpoint block
             fee_recipient.insert(h, &caller);
 
             Self {
                 headers,
-                cannon_chain,
+                canon_chain,
                 fee_recipient,
                 best_height,
                 difficulty_threshold,
@@ -324,8 +324,8 @@ mod spv_bridge {
             assert_eq!(relay_response, Ok(()));
 
             // Validate Storage
-            assert_eq!(bridge.cannon_chain.get(100), Some(genesis_hash));
-            assert_eq!(bridge.cannon_chain.get(101), Some(child_hash));
+            assert_eq!(bridge.canon_chain.get(100), Some(genesis_hash));
+            assert_eq!(bridge.canon_chain.get(101), Some(child_hash));
 
             assert_eq!(bridge.fee_recipient.get(genesis_hash), Some(default_accounts.alice));
             assert_eq!(bridge.fee_recipient.get(child_hash), Some(default_accounts.alice));
@@ -365,9 +365,9 @@ mod spv_bridge {
 
 
             // Validate Storage
-            assert_eq!(bridge.cannon_chain.get(100), Some(genesis_hash));
-            assert_eq!(bridge.cannon_chain.get(101), Some(a_hash));
-            assert_eq!(bridge.cannon_chain.get(102), Some(b_hash));
+            assert_eq!(bridge.canon_chain.get(100), Some(genesis_hash));
+            assert_eq!(bridge.canon_chain.get(101), Some(a_hash));
+            assert_eq!(bridge.canon_chain.get(102), Some(b_hash));
 
             assert_eq!(bridge.fee_recipient.get(genesis_hash), Some(default_accounts.alice));
             assert_eq!(bridge.fee_recipient.get(a_hash), Some(default_accounts.alice));
@@ -406,9 +406,9 @@ mod spv_bridge {
             assert_eq!(relay_response, Ok(()));
 
             // Validate Storage
-            assert_eq!(bridge.cannon_chain.get(100), Some(genesis_hash));
-            assert_eq!(bridge.cannon_chain.get(101), Some(c_hash));
-            assert_eq!(bridge.cannon_chain.get(102), Some(d_hash));
+            assert_eq!(bridge.canon_chain.get(100), Some(genesis_hash));
+            assert_eq!(bridge.canon_chain.get(101), Some(c_hash));
+            assert_eq!(bridge.canon_chain.get(102), Some(d_hash));
 
             assert_eq!(bridge.fee_recipient.get(genesis_hash), Some(default_accounts.alice));
             assert_eq!(bridge.fee_recipient.get(a_hash), Some(default_accounts.alice));

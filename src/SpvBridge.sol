@@ -70,7 +70,7 @@ contract SpvBridge {
     /// A representation of the canonical source chain.
     /// Maps block heights to the canonical source block hash at that high.
     /// Updates when are-org happens
-    mapping(uint256 => uint256) public cannon_chain;
+    mapping(uint256 => uint256) public canon_chain;
 
     /// The user who submitted each block hash.
     /// Fees paid by verifiers will go to this address.
@@ -109,7 +109,7 @@ contract SpvBridge {
 
         // Update other storages
         best_height = source_genesis_header.height;
-        cannon_chain[best_height] = h;
+        canon_chain[best_height] = h;
 
         // Record the deployer as the fee recipient for the checkpoint block
         fee_recipient[h] = msg.sender;
@@ -163,7 +163,7 @@ contract SpvBridge {
         // happened at all, we will just check whether this gives us a new longest chain
         if (header.height > best_height) {
             best_height = header.height;
-            cannon_chain[header.height] = header_hash;
+            canon_chain[header.height] = header_hash;
 
             // Any time we have a new longest chain, we run the re-org algo.
             // In the case where it is actually just extending the already-longest chain
@@ -174,7 +174,7 @@ contract SpvBridge {
                 Header storage ancestor = headers[ancestor_hash];
 
                 // Make it canon
-                cannon_chain[ancestor.height] = ancestor_hash;
+                canon_chain[ancestor.height] = ancestor_hash;
 
                 // Get ready for the next iteration
                 ancestor_hash = ancestor.parent;
@@ -203,7 +203,7 @@ contract SpvBridge {
         Header storage header = headers[header_hash];
 
         // Use the header's height to check whether it exists in the cannon chain storage
-        return header_is_known(header_hash) && cannon_chain[header.height] == header_hash;
+        return header_is_known(header_hash) && canon_chain[header.height] == header_hash;
     }
 
     /// Verify that some transaction has occurred on the source chain.
