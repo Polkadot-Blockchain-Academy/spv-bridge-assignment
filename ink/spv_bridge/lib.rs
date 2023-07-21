@@ -43,7 +43,7 @@ mod spv_bridge {
     }
 
     impl MerkleProof {
-        pub fn check_merkle_proof(_claim: Hash, proof: MerkleProof, _merkle_root: Hash) -> bool {
+        pub fn check_merkle_proof(_claim: HashValue, proof: MerkleProof, _merkle_root: u64) -> bool {
             // This is where the actual merkle proof checking logic _would_ go
             // if we weren't stubbing the proofs. Instead this stub is given.
             proof.verifies
@@ -57,7 +57,7 @@ mod spv_bridge {
     /// An instance of this struct would claim that a particular key holds a particular value.
     ///
     /// For assignment purposes, the storage model doesn't matter so much because we stub the proofs.
-    /// Nonethless, we give a somewhat realistic model.
+    /// Nonetheless, we give a somewhat realistic model.
     #[derive(Debug, Copy, Clone, PartialEq, Eq, scale::Decode, scale::Encode)]
     #[cfg_attr(
         feature = "std",
@@ -125,7 +125,7 @@ mod spv_bridge {
         block_hash: HashValue,
         block_height: u64,
         #[ink(topic)]
-        submitter: AccountId
+        submitter: AccountId,
     }
 
     /// An on-chain light client (or SPV client) for a foreign source chain.
@@ -140,7 +140,7 @@ mod spv_bridge {
         /// history. We allow starting from a recent point in the source chain and verifying
         /// thereafter.
         ///
-        /// This constructor allows the contract deployer to specifiy the recent block from which to start
+        /// This constructor allows the contract deployer to specify the recent block from which to start
         #[ink(constructor)]
         pub fn new(source_genesis_header: Header, difficulty: HashValue, init_relay_fee: Balance, init_verify_fee: Balance) -> Self {
             let caller = Self::env().caller();
@@ -229,12 +229,12 @@ mod spv_bridge {
         }
 
         /// A helper function to detect whether a header exists in the storage
-        pub fn  header_is_known(header_hash: HashValue) -> bool {
+        pub fn  header_is_known(&self, header_hash: HashValue) -> bool {
             todo!()
         }
 
         /// A helper unction to determine whether a header is in the canon chain
-        pub fn header_is_canon(header_hash: HashValue) -> bool {
+        pub fn header_is_canon(&self, header_hash: HashValue) -> bool {
             todo!()
         }
 
@@ -247,7 +247,7 @@ mod spv_bridge {
 
         /// This function is not graded. It is just for collecting feedback.
         /// About how much time (in minutes) did you spend on the exercises in this section?
-        pub fn how_many_minutes_did_you_spend_on_this_section() -> f32 {
+        pub fn how_many_minutes_did_you_spend_on_this_section() -> u32 {
             todo!()
         }
     }
