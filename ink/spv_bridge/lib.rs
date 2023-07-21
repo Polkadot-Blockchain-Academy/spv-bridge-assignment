@@ -235,7 +235,9 @@ mod spv_bridge {
     #[cfg(test)]
     mod tests {
         // The threshold is set so that we have roughly 1 in 4 chance of finding a valid block.
-        const THRESHOLD: [u8; 32] = [63, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+        const THRESHOLD: [u8; 32] = [63, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+        const RELAY_FEE = 1_000;
+        const VERIFY_FEE = 100;
 
         use ink_e2e::H256;
 
