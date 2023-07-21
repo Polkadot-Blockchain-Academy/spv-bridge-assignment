@@ -372,7 +372,44 @@ mod spv_bridge {
 
         #[ink::test]
         fn test_submit_reorg_chain() {
-            todo!()
+            // We start by creating a linear source chain that looks like this
+            // G---A
+            let default_accounts = default_accounts();
+            set_next_caller(default_accounts.alice);
+
+            let (mut bridge, genesis_header) = deploy_bridge(default_accounts.alice);
+            let genesis_hash = SpvBridge::hash_header(genesis_header);
+            let a_header = make_child(genesis_header);
+            let a_hash = SpvBridge::hash_header(a_header);
+            
+            // FIXME How to attach a value
+            let relay_response = bridge.submit_new_header(a_header);
+            assert_eq!(relay_response, Ok(()));
+            
+            // Now we create a fork in the source chain.
+            // The fork is long enough to cause a re-org.
+            // G---A
+            //  \
+            //   --C---D
+
+            let c_header = make_child_with_transactions_root(genesis_header, 1);
+            let c_hash = SpvBridge::hash_header(c_header);
+            let d_header = make_child_with_transactions_root(c_header, 1);
+            let d_hash = SpvBridge::hash_header(d_header);
+            let relay_response = bridge.submit_new_header(c_header);
+            assert_eq!(relay_response, Ok(()));
+            let relay_response = bridge.submit_new_header(d_header);
+            assert_eq!(relay_response, Ok(()));
+
+            // Validate Storage
+            assert_eq!(bridge.cannon_chain.get(100), Some(genesis_hash));
+            assert_eq!(bridge.cannon_chain.get(101), Some(c_hash));
+            assert_eq!(bridge.cannon_chain.get(102), Some(d_hash));
+
+            assert_eq!(bridge.fee_recipient.get(genesis_hash), Some(default_accounts.alice));
+            assert_eq!(bridge.fee_recipient.get(a_hash), Some(default_accounts.alice));
+            assert_eq!(bridge.fee_recipient.get(c_hash), Some(default_accounts.alice));
+            assert_eq!(bridge.fee_recipient.get(d_hash), Some(default_accounts.alice));
         }
 
         #[ink::test]
