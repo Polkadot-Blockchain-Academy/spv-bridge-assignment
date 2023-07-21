@@ -42,7 +42,7 @@ contract SpvBridgeTest is Test {
 
     function setUp() public {
 
-        genesis = Header({
+        genesis = Header ({
             height: 100,
             parent: 0,
             storage_root: 0,
