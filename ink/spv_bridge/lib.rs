@@ -104,16 +104,18 @@ mod spv_bridge {
     #[derive(Debug, PartialEq, Eq, scale::Encode, scale::Decode)]
     #[cfg_attr(feature = "std", derive(::scale_info::TypeInfo))]
     pub enum Error {
-        /// Insufficent relay fee
+        /// Insufficient fee provided when attempting to relay a block
         InsufficientRelayFee,
-        /// Block is already known
+        /// Insufficient fee provided when attempting to verify a proof
+        InsufficientVerifyFee,
+        /// Header cannot be submitted because it was previously submitted
         HeaderAlreadySubmitted,
         /// Parent is not in the DB
         UnknownParent,
         /// Header height is invalid
         IncorrectHeight,
         /// PoW threshold has not been met
-        PoWThresholdNotMet
+        PoWThresholdNotMet,
     }
 
     /// Type alias for the contract's `Result` type.
