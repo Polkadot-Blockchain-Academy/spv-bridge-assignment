@@ -77,8 +77,8 @@ mod spv_bridge {
         headers: Mapping<HashValue, Header>,
 
         /// A representation of the canonical source chain.
-        /// Maps block heights to the canonical source block hash at that high.
-        /// Updates when are-org happens
+        /// Maps block heights to the canonical source block hash at that height.
+        /// Updates when a re-org happens
         canon_chain: Mapping<u64, HashValue>,
 
         /// The user who submitted each block hash.

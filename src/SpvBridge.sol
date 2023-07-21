@@ -68,8 +68,8 @@ contract SpvBridge {
     mapping(uint256 => Header) public headers;
 
     /// A representation of the canonical source chain.
-    /// Maps block heights to the canonical source block hash at that high.
-    /// Updates when are-org happens
+    /// Maps block heights to the canonical source block hash at that height.
+    /// Updates when a re-org happens
     mapping(uint256 => uint256) public canon_chain;
 
     /// The user who submitted each block hash.
@@ -104,7 +104,7 @@ contract SpvBridge {
         verify_fee = init_verify_fee;
 
         // Calculate header hash and put header in storage
-        uint256 h =hash_header(source_genesis_header);
+        uint256 h = hash_header(source_genesis_header);
         headers[h] = source_genesis_header;
 
         // Update other storages
