@@ -311,8 +311,6 @@ mod spv_bridge {
             };
             let spv_bridge = SpvBridge::new(source_genesis_header, THRESHOLD, RELAY_FEE, VERIFY_FEE);
 
-            let hash_value = SpvBridge::hash_header(source_genesis_header);
-            
             (spv_bridge, source_genesis_header)
         }
 
