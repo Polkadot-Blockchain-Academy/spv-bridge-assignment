@@ -93,11 +93,11 @@ mod spv_bridge {
 
         /// The fee the relayer must pay in order to relay a block on top
         /// of any protocol level gas fees
-        relay_fee: u64,
+        relay_fee: Balance,
 
         /// The fee the verifier must pay in order to verify that their
         /// transaction or state claim is canonical on the source chain.
-        verify_fee: u64,
+        verify_fee: Balance,
 
     }
 
@@ -143,7 +143,7 @@ mod spv_bridge {
         ///
         /// This constructor allows the contract deployer to specifiy the recent block from which to start
         #[ink(constructor)]
-        pub fn new(source_genesis_header: Header, difficulty: HashValue, init_relay_fee: u64, init_verify_fee: u64) -> Self {
+        pub fn new(source_genesis_header: Header, difficulty: HashValue, init_relay_fee: Balance, init_verify_fee: Balance) -> Self {
             let caller = Self::env().caller();
 
             let mut headers = Mapping::default();
@@ -243,8 +243,8 @@ mod spv_bridge {
     mod tests {
         // The threshold is set so that we have roughly 1 in 4 chance of finding a valid block.
         const THRESHOLD: [u8; 32] = [63, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-        const RELAY_FEE: u64 = 1_000;
-        const VERIFY_FEE: u64 = 100;
+        const RELAY_FEE: u128 = 1_000;
+        const VERIFY_FEE: u128 = 100;
 
         use ink_e2e::H256;
 
@@ -320,8 +320,7 @@ mod spv_bridge {
             let child_header = make_child(genesis_header);
             let child_hash = SpvBridge::hash_header(child_header);
 
-            // FIXME How to attach a value
-            let relay_response = bridge.submit_new_header(child_header);
+            let relay_response = ink::env::pay_with_call!(bridge.submit_new_header(child_header), RELAY_FEE);
             assert_eq!(relay_response, Ok(()));
 
             // Validate Storage
@@ -347,10 +346,9 @@ mod spv_bridge {
             let b_header = make_child(a_header);
             let b_hash = SpvBridge::hash_header(b_header);
 
-            // FIXME How to attach a value
-            let relay_response = bridge.submit_new_header(a_header);
+            let relay_response = ink::env::pay_with_call!(bridge.submit_new_header(a_header), RELAY_FEE);
             assert_eq!(relay_response, Ok(()));
-            let relay_response = bridge.submit_new_header(b_header);
+            let relay_response = ink::env::pay_with_call!(bridge.submit_new_header(b_header), RELAY_FEE);
             assert_eq!(relay_response, Ok(()));
 
             // Now we create a fork in the source chain.
@@ -362,7 +360,7 @@ mod spv_bridge {
 
             let c_header = make_child_with_transactions_root(genesis_header, 1);
             let c_hash = SpvBridge::hash_header(c_header);
-            let relay_response = bridge.submit_new_header(c_header);
+            let relay_response = ink::env::pay_with_call!(bridge.submit_new_header(c_header), RELAY_FEE);
             assert_eq!(relay_response, Ok(()));
 
 
@@ -389,8 +387,7 @@ mod spv_bridge {
             let a_header = make_child(genesis_header);
             let a_hash = SpvBridge::hash_header(a_header);
             
-            // FIXME How to attach a value
-            let relay_response = bridge.submit_new_header(a_header);
+            let relay_response = ink::env::pay_with_call!(bridge.submit_new_header(a_header), RELAY_FEE);
             assert_eq!(relay_response, Ok(()));
             
             // Now we create a fork in the source chain.
@@ -403,9 +400,9 @@ mod spv_bridge {
             let c_hash = SpvBridge::hash_header(c_header);
             let d_header = make_child_with_transactions_root(c_header, 1);
             let d_hash = SpvBridge::hash_header(d_header);
-            let relay_response = bridge.submit_new_header(c_header);
+            let relay_response = ink::env::pay_with_call!(bridge.submit_new_header(c_header), RELAY_FEE);
             assert_eq!(relay_response, Ok(()));
-            let relay_response = bridge.submit_new_header(d_header);
+            let relay_response = ink::env::pay_with_call!(bridge.submit_new_header(d_header), RELAY_FEE);
             assert_eq!(relay_response, Ok(()));
 
             // Validate Storage
@@ -431,12 +428,15 @@ mod spv_bridge {
             let a_header = make_child(genesis_header);
             let a_hash = SpvBridge::hash_header(a_header);
             
-            // FIXME How to attach a value
-            let relay_response = bridge.submit_new_header(a_header);
+            let relay_response = ink::env::pay_with_call!(bridge.submit_new_header(a_header), RELAY_FEE);
             assert_eq!(relay_response, Ok(()));
 
-            // FIXME How to attach a value
-            assert!(bridge.verify_transaction([0u8; 32],genesis_hash, 0, MerkleProof { verifies: true } ));
+            assert!(
+                ink::env::pay_with_call!(
+                    bridge.verify_transaction([0u8; 32],genesis_hash, 0, MerkleProof { verifies: true } ),
+                    VERIFY_FEE
+                )
+            );
         }
 
         #[ink::test]
@@ -451,12 +451,16 @@ mod spv_bridge {
             let a_header = make_child(genesis_header);
             let a_hash = SpvBridge::hash_header(a_header);
             
-            // FIXME How to attach a value
-            let relay_response = bridge.submit_new_header(a_header);
+            let relay_response = ink::env::pay_with_call!(bridge.submit_new_header(a_header), RELAY_FEE);
             assert_eq!(relay_response, Ok(()));
 
-            // FIXME How to attach a value
-            assert!(!bridge.verify_transaction([0u8; 32],genesis_hash, 0, MerkleProof { verifies: false } ));
+            assert_eq!(
+                ink::env::pay_with_call!(
+                    bridge.verify_transaction([0u8; 32],genesis_hash, 0, MerkleProof { verifies: false } ),
+                    VERIFY_FEE
+                ),
+                false
+            );
         }
 
         //TODO There are many more ways that a transaction or state verification can fail,
@@ -475,8 +479,7 @@ mod spv_bridge {
             let a_header = make_child(genesis_header);
             let a_hash = SpvBridge::hash_header(a_header);
             
-            // FIXME How to attach a value
-            let relay_response = bridge.submit_new_header(a_header);
+            let relay_response = ink::env::pay_with_call!(bridge.submit_new_header(a_header), RELAY_FEE);
             assert_eq!(relay_response, Ok(()));
 
             let claim = StateClaim {
@@ -484,8 +487,12 @@ mod spv_bridge {
                 value: 0,
             };
 
-            // FIXME How to attach a value
-            assert!(bridge.verify_state(claim, genesis_hash, 0, MerkleProof { verifies: true } ));
+            assert!(
+                ink::env::pay_with_call!(
+                    bridge.verify_state(claim, genesis_hash, 0, MerkleProof { verifies: true } ),
+                    VERIFY_FEE
+                )
+            );
         }
 
         #[ink::test]
@@ -500,8 +507,7 @@ mod spv_bridge {
             let a_header = make_child(genesis_header);
             let a_hash = SpvBridge::hash_header(a_header);
             
-            // FIXME How to attach a value
-            let relay_response = bridge.submit_new_header(a_header);
+            let relay_response = ink::env::pay_with_call!(bridge.submit_new_header(a_header), RELAY_FEE);
             assert_eq!(relay_response, Ok(()));
 
             let claim = StateClaim {
@@ -509,8 +515,13 @@ mod spv_bridge {
                 value: 0,
             };
 
-            // FIXME How to attach a value
-            assert!(!bridge.verify_state(claim, genesis_hash, 0, MerkleProof { verifies: false } ));
+            assert_eq!(
+                ink::env::pay_with_call!(
+                    bridge.verify_state(claim, genesis_hash, 0, MerkleProof { verifies: false } ),
+                    VERIFY_FEE
+                ),
+                false
+            );
         }
     }
 
