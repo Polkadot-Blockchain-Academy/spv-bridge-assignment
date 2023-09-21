@@ -1,7 +1,6 @@
 [package]
 name = "spv_bridge"
 version = "0.1.0"
-authors = ["Aaron Bassett <aaron.bassett@parity.io>"]
 edition = "2021"
 publish = false
 
