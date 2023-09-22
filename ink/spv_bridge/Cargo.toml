@@ -1,5 +1,6 @@
 [package]
 name = "spv_bridge"
+authors = ["Polkadot Blockchain Academy"]
 version = "0.1.0"
 edition = "2021"
 publish = false
