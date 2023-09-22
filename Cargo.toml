@@ -1,5 +1,5 @@
 [workspace]
 members = [
-    "ink/spv_bridge",
+  "ink/spv_bridge",
 ]
 resolver = "2"

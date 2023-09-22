@@ -1,7 +1,7 @@
 [package]
 name = "spv_bridge"
-authors = ["Polkadot Blockchain Academy"]
 version = "0.1.0"
+authors = ["Polkadot Blockchain Academy"]
 edition = "2021"
 publish = false
 
@@ -17,9 +17,9 @@ path = "lib.rs"
 [features]
 default = ["std"]
 std = [
-    "ink/std",
-    "scale/std",
-    "scale-info/std",
+  "ink/std",
+  "scale/std",
+  "scale-info/std",
 ]
 ink-as-dependency = []
 e2e-tests = []

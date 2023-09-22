@@ -1,8 +1,8 @@
 # Week 2 Assignment - Simple On-Chain Bridge
 
 This assignment covers material from Module 3: Blockchain and Module 4: Smart Contracts.
-In it, you will build a btc-relay-like on-chain bridge smart contract.
-You will build this bridge in either ink! or solidity.
+In it, you will build a btc-relay-like on-chain bridge smart contract that relies on [Simplified Payment Verification (SPV)](https://bitcoin.org/bitcoin.pdf).
+You will build this bridge in either `ink!` or `solidity`.
 
 ## Primary Bridge Functionality
 
@@ -24,7 +24,7 @@ You should also write your own tests to check more edge cases.
 
 ### Ink tests
 
-To run the ink! tests:
+To run the `ink!` tests:
 
 ```bash
 cd ink/spv_bridge
@@ -33,7 +33,8 @@ cargo test
 
 ### Solidity tests
 
-To run the solidity tests, you will need [foundry](https://book.getfoundry.sh/) installed. Then you can run:
+To run the `solidity` tests, you will need [foundry](https://book.getfoundry.sh/) installed.
+Then you can run:
 
 ```bash
 forge test
@@ -52,7 +53,9 @@ This has some important implications:
 
 ## Deadline
 
-The deadline for submission will be communicated when the assignment is first sent to you, and the Github classroom invitation link mentions this explicitly as well. All grades will be assessed using the commit present on main at the time of the deadline. All other work will be ignored.
+The deadline for submission will be communicated when the assignment is first sent to you, and the Github classroom invitation link mentions this explicitly as well.
+All grades will be assessed using the commit present on main at the time of the deadline.
+All other work will be ignored.
 
 ## Private Test Suite and Manual Grading
 
